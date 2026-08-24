@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    
+    /* Configurações de relaxamento para a migração */
+    "strict": false,                        /* Desliga o modo super estrito temporariamente */
+    "noImplicitAny": false,                 /* Permite variáveis sem tipo explícito (vira 'any') */
+    "strictNullChecks": false,              /* Evita erros imediatos com null/undefined */
+    
+    /* Manutenção das boas práticas */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true
+  },
+  "include": ["src/**/*"]
+}

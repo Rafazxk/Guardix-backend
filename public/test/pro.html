@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardix Pro | Forensic Security</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="pro-style.css">
+</head>
+<body>
+
+    <div class="overlay" id="menu-overlay" onclick="GuardixApp.toggleSidebar()"></div>
+    <button class="hamburger" onclick="GuardixApp.toggleSidebar()">
+        <i data-lucide="menu"></i>
+    </button>
+
+    <div id="app">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i data-lucide="shield-check"></i></div>
+                <div>
+                    <div class="logo-name">GUARDIX <span class="logo-badge">PRO</span></div>
+                    <div class="logo-sub">Forensic Engine v3.0</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-label">Main Menu</div>
+                <div class="nav-item active" onclick="GuardixApp.switchTab(this, 'dashboard')">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span class="nav-text">Dashboard</span>
+                </div>
+                <div class="nav-item" onclick="GuardixApp.switchTab(this, 'investigator')">
+                    <i data-lucide="search"></i>
+                    <span class="nav-text">Investigador IP</span>
+                    <span class="nav-badge">Live</span>
+                </div>
+                <div class="nav-item" onclick="GuardixApp.switchTab(this, 'relatorios')">
+                    <i data-lucide="file-warning"></i>
+                    <span class="nav-text">Relatórios</span>
+                </div>
+                
+                <div class="nav-label" style="margin-top: 20px;">System</div>
+                <div class="nav-item" onclick="GuardixApp.switchTab(this, 'config')">
+                    <i data-lucide="settings"></i>
+                    <span class="nav-text">Configurações</span>
+                </div>
+            </nav>
+
+            <div class="sidebar-status">
+                <div class="status-dot-row">
+                    <div class="dot-green"></div>
+                    <span class="status-label">Engine Status</span>
+                </div>
+                <div class="status-active">Operational</div>
+                <div class="status-bar-track">
+                    <div class="status-bar-fill"></div>
+                </div>
+                <div class="status-pct">System Load: 12%</div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-title">Security Overview</div>
+                <div class="search-wrap">
+                    <i data-lucide="search"></i>
+                    <input type="text" class="search-input" placeholder="Search hash, URL or IP...">
+                </div>
+                <div class="topbar-actions">
+                    <button class="icon-btn">
+                        <i data-lucide="bell"></i>
+                        <span class="notif-dot"></span>
+                    </button>
+                    <div class="avatar-btn">GP</div>
+                </div>
+            </header>
+
+            <section id="dashboard" class="page active">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Threat Analysis</h1>
+                        <p class="page-sub">Analise URLs, Telefones e Scripts em tempo real.</p>
+                    </div>
+                    <div class="pro-chip">
+                        <i data-lucide="star" class="star"></i>
+                        <span>Premium Enterprise</span>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="card scan-area col-span-2">
+                        <div class="card-title">
+                            <i data-lucide="terminal"></i> Forensic Input
+                            <div class="divider"></div>
+                        </div>
+                        <div class="input-zone">
+                            <textarea class="scan-textarea" placeholder="Insira URL ou Telefone para varredura profunda..."></textarea>
+                            <div class="input-icons">
+                                <button class="input-icon-btn"><i data-lucide="link"></i></button>
+                                <button class="input-icon-btn"><i data-lucide="phone"></i></button>
+                            </div>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn-primary" onclick="GuardixApp.realizarAnalise()">
+                                <i data-lucide="zap"></i> INICIAR VARREDURA
+                            </button>
+                            <button class="btn-secondary" onclick="document.querySelector('.scan-textarea').value=''">Limpar</button>
+                        </div>
+                    </div>
+
+                    <div class="card gauge-card">
+                        <div class="gauge-title">Risk Score</div>
+                        <div class="gauge-wrap">
+                            <svg class="gauge-svg" viewBox="0 0 100 55">
+                                <path d="M20,50 A30,30 0 1,1 80,50" fill="none" stroke="#1e293b" stroke-width="8" stroke-linecap="round"/>
+                                <path id="risk-fill" d="M20,50 A30,30 0 1,1 80,50" fill="none" stroke="#7c3aed" stroke-width="8" stroke-dasharray="126" stroke-dashoffset="126" stroke-linecap="round" style="transition: stroke-dashoffset 1s ease;"/>
+                                <text x="50" y="45" text-anchor="middle" class="gauge-value-text" fill="#fff" id="risk-value">0</text>
+                            </svg>
+                        </div>
+                        <div class="gauge-label">
+                            <div class="dot" id="status-dot"></div>
+                            <span id="status-text">WAITING</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="results-area" style="display: none;">
+                    <div class="xray-title">
+                        <i data-lucide="microscope"></i> DEEP INSPECTION RESULTS
+                        <div class="divider"></div>
+                    </div>
+                    <div class="grid-3">
+                        <div class="result-card">
+                            <div class="xray-col-title">Reputação</div>
+                            <div class="xray-item">
+                                <div class="xray-icon ok"><i data-lucide="check"></i></div>
+                                <div class="xray-text">
+                                    <div class="xray-label">Domain Status</div>
+                                    <div class="xray-value">N/A</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-card">
+                            <div class="xray-col-title">Comportamento</div>
+                            <div class="xray-item">
+                                <div class="xray-icon bad"><i data-lucide="alert-triangle"></i></div>
+                                <div class="xray-text">
+                                    <div class="xray-label">Scripts</div>
+                                    <div class="xray-value">N/A</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-card">
+                            <div class="xray-col-title">Blacklist</div>
+                            <div class="xray-item">
+                                <div class="xray-dot ok"></div>
+                                <div class="xray-text">
+                                    <div class="xray-label">Database</div>
+                                    <div class="xray-value">N/A</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <button class="chat-fab" onclick="GuardixApp.toggleChat()">
+        <i data-lucide="message-square"></i>
+        <span class="notif-dot">1</span>
+    </button>
+
+    <div class="chatbot hidden" id="guardbot">
+        <div class="chat-header">
+            <div class="chat-bot-icon"><i data-lucide="bot"></i></div>
+            <div>
+                <div class="chat-bot-name">GuardBot AI</div>
+                <div class="chat-bot-status"><div class="dot-green"></div><span>Online</span></div>
+            </div>
+        </div>
+        <div class="chat-messages" id="chat-flow">
+            <div class="chat-msg">
+                <div class="chat-bubble">Olá! Como posso ajudar na sua investigação hoje?</div>
+            </div>
+        </div>
+        <div class="chat-input-row">
+            <input type="text" class="chat-text-input" placeholder="Pergunte algo...">
+            <button class="chat-send-btn"><i data-lucide="send"></i></button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

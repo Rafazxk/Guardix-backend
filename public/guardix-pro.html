@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardix Pro | Painel Forense</title>
+    <link rel="stylesheet" href="css/guardix-pro.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+
+    <div class="overlay"></div>
+    <button class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+
+    <div id="app">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="fa-solid fa-shield"></i></div>
+                <div>
+                    <div class="logo-name">Guardix <span class="logo-badge">PRO</span></div>
+                    <div class="logo-sub">Security Intelligence</div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-label">Ferramentas</div>
+                <div class="nav-item active" data-page="dashboard"><i class="fa-solid fa-shield-halved"></i><span class="nav-text">Dashboard</span></div>
+                <div class="nav-item" data-page="ip-investigator"><i class="fa-solid fa-magnifying-glass"></i><span class="nav-text">Investigador IP</span></div>
+                <div class="nav-item" data-page="incident-reports"><i class="fa-solid fa-file-shield"></i><span class="nav-text">Incidentes</span></div>
+                <div class="nav-item" data-page="pro-settings"><i class="fa-solid fa-gear"></i><span class="nav-text">Configurações</span></div>
+            </nav>
+
+            <div class="sidebar-status">
+                <div class="status-dot-row"><div class="dot-green"></div><span class="status-label">Sistema Online</span></div>
+                <div class="status-active">Guardix Core V3.2</div>
+                <div class="status-bar-track"><div class="status-bar-fill"></div></div>
+                <div class="status-pct">85% de processamento</div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2 class="topbar-title" id="topbar-title">Dashboard Forense</h2>
+                <div class="search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" class="search-input" placeholder="Buscar incidentes ou logs...">
+                </div>
+                <div class="topbar-actions">
+                    <button class="icon-btn"><i class="fa-solid fa-bell"></i><div class="notif-dot"></div></button>
+                    <div class="avatar-btn">AD</div>
+                </div>
+            </header>
+
+            <section id="page-dashboard" class="page active">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Dashboard Forense</h1>
+                        <p class="page-sub">Monitoramento em tempo real de ameaças digitais.</p>
+                    </div>
+                    <div class="pro-chip"><i class="fa-solid fa-star star"></i> <span>Versão PRO Ativa</span></div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card scan-area">
+                        <div class="card-title"><i class="fa-solid fa-bolt"></i> Analisador <div class="divider"></div></div>
+                        <div id="input-zone" class="input-zone">
+                            <textarea id="scan-input" class="scan-textarea" placeholder="Cole a URL, número de telefone ou IP para análise forense..."></textarea>
+                            <div class="input-icons">
+                                <button class="input-icon-btn" id="file-btn"><i class="fa-solid fa-camera"></i></button>
+                                <input type="file" id="file-input" hidden>
+                            </div>
+                        </div>
+                        <div class="btn-row">
+                            <button id="scan-btn" class="btn-primary"><i class="fa-solid fa-shield-halved"></i> Iniciar Varredura</button>
+                            <button id="clear-btn" class="btn-secondary hidden">Limpar</button>
+                        </div>
+                        <div id="scan-log" class="scan-log mt-4 hidden">
+                            <div class="scan-log-header"><div class="blink-dot"></div><span class="scan-log-title">Log de Execução</span></div>
+                            <div id="scan-log-lines" class="scan-log-lines"></div>
+                        </div>
+                    </div>
+
+                    <div class="card gauge-card">
+                        <div class="gauge-title">Índice de Risco</div>
+                        <div id="gauge-wrap" class="gauge-wrap">
+                            <svg class="gauge-svg" viewBox="0 0 200 110">
+                                <path d="M20,100 A80,80 0 0,1 180,100" fill="none" stroke="#181e2a" stroke-width="12" stroke-linecap="round"/>
+                                <path id="gauge-fill" d="M20,100 A80,80 0 0,1 180,100" fill="none" stroke="#7c3aed" stroke-width="12" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="251"/>
+                            </svg>
+                            <text id="gauge-val" x="100" y="85" text-anchor="middle" class="gauge-value-text">0</text>
+                        </div>
+                        <div class="gauge-label"><div id="gauge-dot" class="dot"></div><span id="gauge-lbl">AGUARDANDO</span></div>
+                        <div id="gauge-hint" class="gauge-hint">Insira uma URL ou telefone para análise</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Ameaças Recentes <div class="divider"></div></div>
+                    <div id="recent-threats-list"></div>
+                </div>
+            </section>
+
+            </main>
+    </div>
+
+    <button id="chat-fab" class="chat-fab"><i class="fa-solid fa-comment-dots"></i></button>
+    <div id="chatbot" class="chatbot hidden">
+        <div class="chat-header">
+            <div class="chat-bot-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+                <div class="chat-bot-name">Guardix AI</div>
+                <div class="chat-bot-status"><div class="dot-green"></div><span>Online</span></div>
+            </div>
+        </div>
+        <div id="chat-messages" class="chat-messages"></div>
+        <div id="chat-qa-area" class="chat-qa-section">
+            <div class="chat-qa-label">Perguntas Frequentes</div>
+            <div class="chat-qa-chips">
+                <button class="qa-chip" data-q="Como identificar phishing?">Phishing</button>
+                <button class="qa-chip" data-q="Como verificar um PIX seguro?">PIX Seguro</button>
+            </div>
+        </div>
+        <div class="chat-input-row">
+            <input type="text" id="chat-text-input" class="chat-text-input" placeholder="Dúvida sobre segurança...">
+            <button id="chat-send-btn" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script src="js/dashboard-pro.js"></script>
+</body>
+</html>

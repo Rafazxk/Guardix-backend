@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardix - Proteção Antifraude</title>
+    <link rel="stylesheet" href="./css/estilo.css">
+</head>
+<body>
+
+    <!-- Cabeçalho Principal -->
+    <header class="cabecalho">
+        <nav class="navegacao">
+            <div class="logo">Guardix</div>
+            <div class="menu-acesso">
+                <button onclick="abrirModal()" class="botao-login">Entrar / Cadastrar</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+
+<!-- Seção de Verificação (Funcionalidade Principal) -->
+<section class="secao-verificacao">
+    <div class="container">
+        <div class="caixa-ferramenta">
+            <h2>Verificador Antifraude</h2>
+            <p>Cole o link, número ou anexe o print para análise imediata.</p>
+            
+            <form id="formulario-analise" class="grade-formulario">
+                <!-- Campo de URL -->
+                <div class="campo">
+                    <label for="url">Link / URL suspeita</label>
+                    <input type="url" id="url" placeholder="https://site-duvidoso.com.br">
+                </div>
+
+                <!-- Campo de Telefone -->
+                <div class="campo">
+                    <label for="telefone">Telefone / WhatsApp</label>
+                    <input type="tel" id="telefone" placeholder="(11) 99999-0000">
+                </div>
+
+                <!-- Campo de Print (Upload) -->
+                <div class="campo-upload">
+                    <label for="print" class="etiqueta-upload">
+                        <span class="icone">📸</span>
+                        <span>Anexar Print do Comprovante</span>
+                        <input type="file" id="print" accept="image/*" hidden>
+                    </label>
+                    <p id="nome-arquivo" class="nome-arquivo-selecionado"></p>
+                </div>
+
+                <button type="submit" class="botao-analisar">Analisar Agora</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+
+        <!-- Seção 4: Educação e Segurança -->
+        <section class="secao-seguranca" id="educativo">
+            <div class="container">
+                <h2>Por que a prevenção é sua melhor defesa?</h2>
+                <p class="subtitulo">Entenda as ameaças que circulam na rede e como nos antecipamos a elas.</p>
+                
+                <div class="grade-seguranca">
+                    <article class="cartao-informativo">
+                        <h3>O que é Phishing?</h3>
+                        <p>É uma técnica de engenharia social onde criminosos criam sites ou e-mails idênticos aos reais para roubar suas senhas e dados bancários.</p>
+                    </article>
+
+                    <article class="cartao-informativo">
+                        <h3>Golpe do Comprovante</h3>
+                        <p>Utilização de capturas de tela (prints) editadas ou falsificadas para simular pagamentos que nunca ocorreram no sistema bancário.</p>
+                    </article>
+
+                    <article class="cartao-informativo">
+                        <h3>Links Suspeitos</h3>
+                        <p>URLs encurtadas ou com caracteres ocultos que instalam malwares no seu dispositivo assim que clicadas.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <hr class="divisor">
+
+        <!-- Seção 3: Planos e Vantagens -->
+        <section class="secao-planos" id="precos">
+            <div class="container">
+                <h2>Escolha o plano ideal para você</h2>
+                
+                <div class="grade-planos">
+                    <!-- Plano Grátis -->
+                    <div class="cartao-plano">
+                        <h3>Essencial</h3>
+                        <p class="preco">R$ 0<span>/mês</span></p>
+                        <ul class="lista-vantagens">
+                            <li>Até 5 verificações/dia</li>
+                            <li>Análise de links básicos</li>
+                            <li>Comunidade de suporte</li>
+                        </ul>
+                        <button onclick="abrirModal()" class="botao-assinar">Começar Agora</button>
+                    </div>
+
+                    <!-- Plano Pro (Destaque) -->
+                    <div class="cartao-plano destaque">
+                        <span class="etiqueta">Mais Popular</span>
+                        <h3>Profissional</h3>
+                        <p class="preco">R$ 49<span>/mês</span></p>
+                        <ul class="lista-vantagens">
+                            <li>Consultas ilimitadas</li>
+                            <li>Análise de Prints com IA</li>
+                            <li>Relatórios de segurança</li>
+                            <li>Suporte prioritário</li>
+                        </ul>
+                        <button onclick="abrirModal()" class="botao-assinar">Assinar Pro</button>
+                    </div>
+
+                    <!-- Plano Enterprise -->
+                    <div class="cartao-plano">
+                        <h3>Corporativo</h3>
+                        <p class="preco">Consultar</p>
+                        <ul class="lista-vantagens">
+                            <li>Acesso via API dedicada</li>
+                            <li>Painel administrativo</li>
+                            <li>Verificação em massa</li>
+                        </ul>
+                        <button onclick="abrirModal()" class="botao-contato">Falar com Vendas</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de Autenticação (Login / Cadastro) -->
+    <div id="modal-autenticacao" class="fundo-modal">
+        <div class="conteudo-modal">
+            <span class="fechar-modal" onclick="fecharModal()">&times;</span>
+            
+            <div class="abas-modal">
+                <button id="aba-login" class="aba ativa" onclick="mudarAba('login')">Login</button>
+                <button id="aba-cadastro" class="aba" onclick="mudarAba('cadastro')">Cadastro</button>
+            </div>
+
+            <!-- Formulário de Login -->
+            <form id="formulario-login" class="formulario-modal">
+                <label for="email-login">E-mail</label>
+                <input type="email" id="email-login" placeholder="seu@email.com" required>
+                
+                <label for="senha-login">Senha</label>
+                <input type="password" id="senha-login" placeholder="••••••••" required>
+                
+                <button type="submit" class="botao-acao">Entrar na Conta</button>
+            </form>
+
+            <!-- Formulário de Cadastro (Oculto por padrão) -->
+            <form id="formulario-cadastro" class="formulario-modal" style="display: none;">
+                <label for="nome-cadastro">Nome Completo</label>
+                <input type="text" id="nome-cadastro" placeholder="João Silva" required>
+                
+                <label for="email-cadastro">E-mail</label>
+                <input type="email" id="email-cadastro" placeholder="seu@email.com" required>
+                
+                <label for="senha-cadastro">Senha</label>
+                <input type="password" id="senha-cadastro" placeholder="Crie uma senha forte" required>
+                
+                <button type="submit" class="botao-acao">Criar Minha Conta</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/index.js"></script>
+</body>
+</html>
