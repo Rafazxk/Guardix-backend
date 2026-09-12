@@ -5,7 +5,8 @@ import { fileURLToPath } from 'url';
 
 import consultaRoutes from "./client/routes/consultaRoutes.js"
 import userRoutes from './auth/routes/userRoutes.js';
-// import feedRoutes from './routes/FeedRoutes.js';
+import feedRoutes from './client/routes/feedRoutes.js';
+import whatappRoutes from './client/routes/whatsappRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +20,8 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 app.use('/users', userRoutes);
 app.use('/api', consultaRoutes);
-// app.use('/stats', feedRoutes);
+app.use('/stats', feedRoutes);
+app.use('/wpp', whatappRoutes);
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
