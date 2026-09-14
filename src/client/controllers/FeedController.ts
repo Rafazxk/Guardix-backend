@@ -33,9 +33,10 @@ class FeedController {
   ): Promise<Response> {
 
     try {
-
+      const usuarioId = req.user.id;
+      
       const estatisticas =
-        await FeedService.listarEstatisticas();
+        await FeedService.listarEstatisticas(usuarioId);
 
       return res.json(estatisticas);
 

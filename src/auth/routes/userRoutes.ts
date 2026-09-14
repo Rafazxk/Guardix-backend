@@ -6,7 +6,6 @@ const router = Router();
 const userController = new UserController();
 
 router.get('/test-connection', (req, res) => {
-  console.log("TESTE DE CONEXAO RECEBIDO NO BACKEND");
   res.json({ message: "Conexão estabelecida com sucesso!" });
 });
 

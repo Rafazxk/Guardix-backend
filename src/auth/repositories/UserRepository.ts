@@ -8,6 +8,7 @@ export interface User {
   tipo_pessoa?: string;
   plano?: string;
   created_at?: Date;
+  email_verified: boolean;
 }
 
 interface CreateUserDTO {

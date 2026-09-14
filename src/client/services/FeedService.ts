@@ -4,11 +4,12 @@ import { CreateDenunciaDTO } from "../../types/interfaces/FeedInterface.js";
 class FeedService {
 
   async listarFeed() {
-    return FeedRepository.listarFeed();
+    const itens = FeedRepository.listarFeed();
+    return itens; 
   }
 
-  async listarEstatisticas() {
-    return FeedRepository.listarEstatisticas();
+  async listarEstatisticas(usuarioId: string) {
+    return FeedRepository.listarEstatisticas(usuarioId);
   }
 
   async criarDenuncia(data: CreateDenunciaDTO) {

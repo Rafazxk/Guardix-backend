@@ -5,8 +5,8 @@ import authMiddleware from "../../middleware/authMiddleware.js";
 
 router.get('/feed', denunciaController.listarFeed);
 
-router.get('/estatisticas', denunciaController.listarEstatisticas);
+router.get('/estatisticas', authMiddleware, denunciaController.listarEstatisticas);
 
-router.post('/reportar-direto', denunciaController.criarDenuncia);
+router.post('/report', denunciaController.criarDenuncia);
 
 export default router;

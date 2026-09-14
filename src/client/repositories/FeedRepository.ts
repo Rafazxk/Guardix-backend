@@ -8,67 +8,68 @@ import {
 class FeedRepository {
 
   async listarFeed(): Promise<FeedItem[]> {
-
     const query = `
-      SELECT 
-        'link' AS tipo,
-        url AS valor,
-        SUM(denuncias) AS total
-      FROM links_reportados
-      GROUP BY url
-      HAVING SUM(denuncias) >= 1
+    SELECT 
+      'link' AS tipo,
+      lr.url AS valor,
+      COUNT(DISTINCT c.user_id) AS total
+    FROM links_reportados lr
+    INNER JOIN consultas c ON lr.consulta_id = c.consulta_id
+    WHERE lr.url NOT ILIKE '%google.com%'
+      AND lr.url NOT ILIKE '%google.com.br%'
+      AND lr.url NOT ILIKE '%github.com%'
+      AND lr.url NOT ILIKE '%whatsapp.com%'
+      AND lr.url NOT ILIKE '%microsoft.com%'
+      AND lr.url NOT ILIKE '%apple.com%'
+    GROUP BY lr.url
 
-      UNION ALL
+    UNION ALL
 
-      SELECT
-        'telefone' AS tipo,
-        numero AS valor,
-        SUM(denuncias) AS total
-      FROM telefones_reportados
-      GROUP BY numero
-      HAVING SUM(denuncias) >= 1
+    SELECT
+      'telefone' AS tipo,
+      tr.numero AS valor,
+      COUNT(DISTINCT c.user_id) AS total
+    FROM telefones_reportados tr
+    INNER JOIN consultas c ON tr.consulta_id = c.consulta_id
+    GROUP BY tr.numero
 
-      ORDER BY total DESC
-      LIMIT 5;
-    `;
+    ORDER BY total DESC
+    LIMIT 1;
+  `;
 
     const result = await db.query<FeedItem>(query);
-
     return result.rows;
   }
-
-  async listarEstatisticas(): Promise<FeedStatistics> {
-
+  async listarEstatisticas(usuarioId: string | number): Promise<FeedStatistics> {
     const query = `
-      SELECT
-        (SELECT COUNT(*) FROM consultas) AS total_consultas,
+    SELECT
+      (SELECT COUNT(*) FROM consultas WHERE user_id = $1) AS total_consultas,
 
-        (
-          SELECT COUNT(*)
-          FROM telefones_reportados
-          WHERE status = 'bloqueado'
-        )
-        +
-        (
-          SELECT COUNT(*)
-          FROM links_reportados
-          WHERE status = 'bloqueado'
-        ) AS ameacas_evitadas,
+      -- Conta apenas o que é considerado alto risco / ameaça
+      (
+        SELECT COUNT(*) FROM consultas 
+        WHERE user_id = $1 AND (resultado LIKE '%Alto risco%' OR score_risco >= 70)
+      ) AS ameacas_evitadas,
 
-        (
-          SELECT COUNT(*)
-          FROM telefones_reportados
-        )
-        +
-        (
-          SELECT COUNT(*)
-          FROM links_reportados
-        ) AS total_reportados;
-    `;
+      -- Conta apenas o que é seguro
+      (
+        SELECT COUNT(*) FROM consultas 
+        WHERE user_id = $1 AND (resultado LIKE '%Seguro%' OR score_risco < 70)
+      ) AS analises_seguras,
 
-    const result =
-      await db.query<FeedStatistics>(query);
+      -- Denúncias
+      (
+        SELECT COUNT(*) FROM links_reportados l
+        JOIN consultas c ON l.consulta_id = c.consulta_id
+        WHERE c.user_id = $1
+      ) + (
+        SELECT COUNT(*) FROM telefones_reportados t
+        JOIN consultas c ON t.consulta_id = c.consulta_id
+        WHERE c.user_id = $1
+      ) AS reportados;
+  `;
 
+    const result = await db.query<FeedStatistics>(query, [usuarioId]);
     return result.rows[0];
   }
 

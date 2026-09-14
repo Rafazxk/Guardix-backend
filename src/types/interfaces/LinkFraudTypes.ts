@@ -6,13 +6,24 @@ export interface LinkFraudContext {
   regrasVioladas: RegraViolada[];
 }
 
+export type LinkFraudType =
+  | "blacklist"
+  | "typosquatting"
+  | "estrutura_suspeita"
+  | "dominio_recente"
+  | "tld_suspeito"
+  | "phishing";
+
 export interface RegraViolada {
   regra: string;
+  tipo: LinkFraudType;
+  pontuacao: number;
   mensagem: string;
 }
 
 export interface LinkRuleResult {
   pontuacao: number;
+  tipo: LinkFraudType;
   mensagem?: string;
 }
 

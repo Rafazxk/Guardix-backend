@@ -36,9 +36,12 @@ class LinkFraudEngine {
 
           context.regrasVioladas.push({
             regra: rule.constructor.name,
+            tipo: result.tipo,
+            pontuacao: result.pontuacao,
             mensagem: result.mensagem,
           });
         }
+
       } catch (error: unknown) {
         const message =
           error instanceof Error

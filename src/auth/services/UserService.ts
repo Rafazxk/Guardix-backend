@@ -48,7 +48,10 @@ class UserService {
       throw new Error("Senha inválida");
     }
 
+    if (!user.email_verified) { throw new Error("E-mail não verificado"); }
+
     const secret = process.env.JWT_SECRET;
+    
     if (!secret) {
       throw new Error("JWT_SECRET não está definido nas variáveis de ambiente.");
     }

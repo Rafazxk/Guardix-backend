@@ -76,59 +76,45 @@ class ConsultaController {
   ): Promise<Response> =>
     this.processarAnalise(req, res, "print");
 
-  public obterHistorico = async (
+public obterHistorico = async (
     req: Request,
     res: Response
-  ): Promise<Response> => {
-
+): Promise<Response> => {
     try {
+        const user_id = req.user?.id;
 
-      const user_id = req.user?.id;
+        if (!user_id) {
+            return res.status(401).json({
+                error: "Usuário não autenticado.",
+            });
+        }
 
-      if (!user_id) {
-        return res.status(401).json({
-          error: "Usuário não autenticado.",
-        });
-      }
+        const consultas = await ConsultaRepository.findAllByUser(user_id);
 
-      const consultas =
-        await ConsultaRepository.findAllByUser(user_id);
+        const historicoFormatado = consultas.map((c: any) => ({
+            id: c.id,
+            data: c.data || "N/A",
+            tipo: c.tipo,
+            alvo: c.alvo,
+            status: c.status || "Indefinido",
+        }));
 
-      const historicoFormatado = consultas.map((c: any) => ({
-        data: c.data_consulta
-          ? new Date(c.data_consulta).toLocaleDateString("pt-BR")
-          : "N/A",
-
-        alvo: c.tipo_consulta,
-
-        resultado: c.resultado || "Indefinido",
-      }));
-
-      return res.json(historicoFormatado);
-
+        return res.json(historicoFormatado);
     } catch (error: unknown) {
+        console.error("Erro no Histórico:", error);
 
-      console.error(
-        "Erro no Histórico:",
-        error
-      );
-
-      return res.status(500).json({
-        error: "Erro interno ao buscar histórico",
-      });
+        return res.status(500).json({
+            error: "Erro interno ao buscar histórico",
+        });
     }
-  };
+};
 
   public obterStatsLive = async (
     _req: Request,
     res: Response
   ): Promise<Response> => {
-
     try {
-
-      const stats =
-        await ConsultaStatsService.obterStatsLive();
-
+      const stats = await ConsultaStatsService.obterStatsLive();
       return res.json(stats);
 
     } catch (error: unknown) {

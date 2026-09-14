@@ -5,51 +5,89 @@ import { Consulta, CreateConsultaDTO } from "../../types/interfaces/ConsultaInte
 
 class ConsultaRepository {
 
-  async create({
-    user_id,
-    tipo_consulta,
-    score_risco,
-    resultado
-  }: CreateConsultaDTO): Promise<Consulta> {
+  async create(data: CreateConsultaDTO & { alvo?: string }): Promise<Consulta> {
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN'); 
 
-    const query = `
-      INSERT INTO consultas 
-      (user_id, tipo_consulta, score_risco, resultado, data_consulta)
-      VALUES ($1, $2, $3, $4, NOW())
-      RETURNING *;
-    `;
+      const consultaQuery = `
+        INSERT INTO consultas 
+        (user_id, tipo_consulta, score_risco, resultado, data_consulta)
+        VALUES ($1, $2, $3, $4, NOW())
+        RETURNING *;
+      `;
+      const consultaValues = [
+        data.user_id,
+        data.tipo_consulta,
+        data.score_risco,
+        JSON.stringify(data.resultado)
+      ];
+      const consultaResult = await client.query(consultaQuery, consultaValues);
+      const novaConsulta = consultaResult.rows[0];
 
-    const values = [
-      user_id,
-      tipo_consulta,
-      score_risco,
-      JSON.stringify(resultado)
-    ];
+      if (data.alvo) {
+        if (data.tipo_consulta === 'link') {
+          await client.query(
+            `INSERT INTO links_analisados (consulta_id, url) VALUES ($1, $2)`,
+            [novaConsulta.consulta_id, data.alvo]
+          );
+        } else if (data.tipo_consulta === 'telefone') {
+          await client.query(
+            `INSERT INTO telefones_reportados (consulta_id, numero) VALUES ($1, $2)`,
+            [novaConsulta.consulta_id, data.alvo]
+          );
+        } else if (data.tipo_consulta === 'print') {
+          await client.query(
+            `INSERT INTO prints_analisados (consulta_id, caminho_arquivo) VALUES ($1, $2)`,
+            [novaConsulta.consulta_id, data.alvo]
+          );
+        }
+      }
 
-    const result: QueryResult<Consulta> =
-      await pool.query(query, values);
-
-    return result.rows[0];
+      await client.query('COMMIT'); 
+      return novaConsulta;
+    } catch (error) {
+      await client.query('ROLLBACK'); 
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
-  async findAllByUser(user_id: string): Promise<Consulta[]> {
-
+async findAllByUser(user_id: string): Promise<any[]> {
     const query = `
-      SELECT *
-      FROM consultas
-      WHERE user_id = $1::uuid
-      ORDER BY data_consulta DESC;
+      SELECT 
+        c.consulta_id AS id,
+        TO_CHAR(c.data_consulta, 'DD/MM/YYYY') AS data,
+        c.tipo_consulta AS tipo,
+        c.score_risco AS status,
+        COALESCE(
+          la.url, 
+          tr.numero, 
+          pa.caminho_arquivo, 
+          c.resultado::json->>'url', 
+          c.resultado::json->>'numero', 
+          c.resultado::json->>'alvo',
+          'Alvo não especificado'
+        ) AS alvo
+      FROM consultas c
+      LEFT JOIN links_analisados la ON c.consulta_id = la.consulta_id
+      LEFT JOIN telefones_reportados tr ON c.consulta_id = tr.consulta_id
+      LEFT JOIN prints_analisados pa ON c.consulta_id = pa.consulta_id
+      WHERE c.user_id = $1::uuid
+      ORDER BY c.data_consulta DESC;
     `;
 
-    const result: QueryResult<Consulta> =
-      await pool.query(query, [user_id]);
-
+    const result = await pool.query(query, [user_id]);
     return result.rows;
   }
 
   async salvarDetalhes(detalhes: any) {
     return ConsultaDetalhesRepository.salvarDetalhe(detalhes);
   }
+
+  
 }
 
 export default new ConsultaRepository();
