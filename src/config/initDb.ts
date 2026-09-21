@@ -7,13 +7,29 @@ export const setupDatabase = async (): Promise<void> => {
     const sql = `
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       
+      -- 1. Tabela de Usuários (com controle de planos e gateway)
       CREATE TABLE IF NOT EXISTS users (
           user_id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
           email varchar NOT NULL UNIQUE,
           senha text NOT NULL,
-          plano varchar DEFAULT 'free' NOT NULL,
+          plano varchar DEFAULT 'free' NOT NULL, -- 'free', 'pro', 'premium'
+          status_assinatura varchar DEFAULT 'active' NOT NULL, -- 'active', 'canceled', 'past_due'
+          stripe_customer_id varchar(255) UNIQUE,
+          stripe_subscription_id varchar(255) UNIQUE,
+          fim_periodo_atual timestamp,
           data_criacao timestamp DEFAULT CURRENT_TIMESTAMP,
           tipo_pessoa varchar DEFAULT 'Pessoa física'
+      );
+
+      -- 2. Tabela de Historico de Pagamentos/Faturas (Opcional, mas muito útil)
+      CREATE TABLE IF NOT EXISTS historico_pagamentos (
+          pagamento_id SERIAL PRIMARY KEY,
+          user_id uuid NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+          valor numeric(10, 2) NOT NULL,
+          plano varchar NOT NULL,
+          status varchar NOT NULL, -- 'paid', 'failed', 'pending'
+          gateway_payment_id varchar(255),
+          data_pagamento timestamp DEFAULT CURRENT_TIMESTAMP
       );
 
       -- 3. Tabela de Consultas (Mestra)
@@ -83,7 +99,7 @@ export const setupDatabase = async (): Promise<void> => {
           data_criacao timestamp DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- links reportados 
+      -- 9. Links Reportados
       CREATE TABLE IF NOT EXISTS links_reportados (
           link_id SERIAL PRIMARY KEY,
           consulta_id INTEGER UNIQUE REFERENCES consultas(consulta_id),

@@ -12,6 +12,7 @@ interface ConsultaServiceInput {
     numero?: string;
     image_path?: string;
   };
+  plano?: string;
 }
 
 class ConsultaService {

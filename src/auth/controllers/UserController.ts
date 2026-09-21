@@ -22,7 +22,8 @@ export default class UserController {
         user: {
           id: user.user_id,
           nome: user.nome,
-          email: user.email
+          email: user.email,
+          plano: user.plano || "free"
         },
         token
       };

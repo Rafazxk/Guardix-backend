@@ -8,6 +8,7 @@ import RiskRecommendation from "../domain/classification/RiskRecommendation.js";
 
 export interface LinkAnalysisContext {
   url: string;
+  plano?: string; // Ex: 'free', 'pro', 'premium'
   [key: string]: any;
 }
 
@@ -26,6 +27,7 @@ export interface LinkAnalysisResult {
   conclusao: string;
   regrasVioladas?: RegraVioladaLog[];
   mensagem?: string;
+  analiseDetalhadaIa?: string; 
 }
 
 export class LinkAnalysisService {
@@ -36,10 +38,7 @@ export class LinkAnalysisService {
   private riskRecommendation: RiskRecommendation;
 
   constructor(blacklistRepo: typeof BlacklistRepository) {
-    this.engine = LinkFraudEngineFactory.create(
-      blacklistRepo
-    );
-
+    this.engine = LinkFraudEngineFactory.create(blacklistRepo);
     this.domainExtractor = new DomainExtractor();
     this.riskClassifier = new RiskClassifier();
     this.riskInterpreter = new LinkRiskInterpreter();
@@ -47,6 +46,8 @@ export class LinkAnalysisService {
   }
 
   async execute(context: LinkAnalysisContext): Promise<LinkAnalysisResult> {
+    const planoUser = context.plano?.toLowerCase() || 'free';
+
     const domain = this.domainExtractor.execute(context.url);
     if (!domain) {
       return {
@@ -59,7 +60,6 @@ export class LinkAnalysisService {
         mensagem: "URL Inválida"
       };
     }
-
 
     const analiseTecnica = await this.engine.execute({
       ...context,
@@ -81,33 +81,39 @@ export class LinkAnalysisService {
       };
     }
 
-    const classificacao = this.riskClassifier.execute(
-      analiseTecnica.score
-    );
-
-
-    const interpretacao = this.riskInterpreter.execute(
-      analiseTecnica.riscos
-    );
+    const classificacao = this.riskClassifier.execute(analiseTecnica.score);
+    const interpretacao = this.riskInterpreter.execute(analiseTecnica.riscos);
 
     const tipoGolpe =
       interpretacao.tipos.length > 0
         ? interpretacao.tipos.join(" / ")
         : "Suspeita de Fraude";
 
-    const recomendacao =
-      this.riskRecommendation.execute(analiseTecnica.score);
+    const recomendacao = this.riskRecommendation.execute(analiseTecnica.score);
 
+    if (planoUser === 'free') {
+      return {
+        url: context.url,
+        score: analiseTecnica.score,
+        classificacao,
+        tipoGolpe,
+        alertas: interpretacao.alertas.slice(0, 2), 
+        conclusao: recomendacao,
+      };
+    }
+
+  
     const logsTecnicos = analiseTecnica.regrasVioladas;
 
     return {
       url: context.url,
       score: analiseTecnica.score,
       classificacao,
-      tipoGolpe: tipoGolpe,
+      tipoGolpe,
       alertas: interpretacao.alertas,
       conclusao: recomendacao,
-      regrasVioladas: logsTecnicos
+      regrasVioladas: logsTecnicos, 
+      analiseDetalhadaIa: `Este domínio (${domain}) ativou ${logsTecnicos.length} indicadores de risco. Recomendamos não inserir dados de cartão de crédito nem credenciais pessoais.`
     };
   }
 }

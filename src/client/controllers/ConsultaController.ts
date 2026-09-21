@@ -23,6 +23,7 @@ class ConsultaController {
     try {
 
       const user_id = req.user?.id;
+      const plano = req.user?.plano || "free"; // Resgata o plano do token/middleware (padrão 'free')
 
       if (!user_id) {
         return res.status(401).json({
@@ -32,6 +33,7 @@ class ConsultaController {
 
       const resultado = await ConsultaService.execute({
         user_id,
+        plano, // Repassado para o orquestrador aplicar as regras do Pro/Free
         tipo,
         input: {
           url: req.body.url,
@@ -76,38 +78,38 @@ class ConsultaController {
   ): Promise<Response> =>
     this.processarAnalise(req, res, "print");
 
-public obterHistorico = async (
+  public obterHistorico = async (
     req: Request,
     res: Response
-): Promise<Response> => {
+  ): Promise<Response> => {
     try {
-        const user_id = req.user?.id;
+      const user_id = req.user?.id;
 
-        if (!user_id) {
-            return res.status(401).json({
-                error: "Usuário não autenticado.",
-            });
-        }
-
-        const consultas = await ConsultaRepository.findAllByUser(user_id);
-
-        const historicoFormatado = consultas.map((c: any) => ({
-            id: c.id,
-            data: c.data || "N/A",
-            tipo: c.tipo,
-            alvo: c.alvo,
-            status: c.status || "Indefinido",
-        }));
-
-        return res.json(historicoFormatado);
-    } catch (error: unknown) {
-        console.error("Erro no Histórico:", error);
-
-        return res.status(500).json({
-            error: "Erro interno ao buscar histórico",
+      if (!user_id) {
+        return res.status(401).json({
+          error: "Usuário não autenticado.",
         });
+      }
+
+      const consultas = await ConsultaRepository.findAllByUser(user_id);
+
+      const historicoFormatado = consultas.map((c: any) => ({
+        id: c.id,
+        data: c.data || "N/A",
+        tipo: c.tipo,
+        alvo: c.alvo,
+        status: c.status || "Indefinido",
+      }));
+
+      return res.json(historicoFormatado);
+    } catch (error: unknown) {
+      console.error("Erro no Histórico:", error);
+
+      return res.status(500).json({
+        error: "Erro interno ao buscar histórico",
+      });
     }
-};
+  };
 
   public obterStatsLive = async (
     _req: Request,

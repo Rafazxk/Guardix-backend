@@ -7,6 +7,8 @@ declare global {
     interface Request {
       user?: {
         id: string;
+        email?: string;
+        plano?: string;
         [key: string]: any;
       };
       file?: Multer.File;
