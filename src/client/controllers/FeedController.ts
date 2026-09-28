@@ -27,31 +27,34 @@ class FeedController {
     }
   }
 
-  async listarEstatisticas(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+ async listarEstatisticas(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  try {
+    const usuarioId = req.user?.user_id;
 
-    try {
-      const usuarioId = req.user.id;
-      
-      const estatisticas =
-        await FeedService.listarEstatisticas(usuarioId);
-
-      return res.json(estatisticas);
-
-    } catch (err: unknown) {
-
-      console.error(
-        "Erro ao buscar estatísticas:",
-        err
-      );
-
-      return res.status(500).json({
-        error: "Erro ao buscar estatísticas."
+    if (!usuarioId) {
+      return res.status(401).json({
+        error: "Usuário não autenticado.",
       });
     }
+
+    const estatisticas =
+      await FeedService.listarEstatisticas(usuarioId);
+
+    return res.json(estatisticas);
+  } catch (err: unknown) {
+    console.error(
+      "Erro ao buscar estatísticas:",
+      err
+    );
+
+    return res.status(500).json({
+      error: "Erro ao buscar estatísticas.",
+    });
   }
+}
 
   async criarDenuncia(
     req: Request,
