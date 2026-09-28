@@ -8,7 +8,7 @@ import RiskRecommendation from "../domain/classification/RiskRecommendation.js";
 
 export interface LinkAnalysisContext {
   url: string;
-  plano?: string; // Ex: 'free', 'pro', 'premium'
+  plano?: string; 
   [key: string]: any;
 }
 

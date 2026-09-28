@@ -1,7 +1,13 @@
+export type TipoConsulta =
+  | "link"
+  | "telefone"
+  | "print";
+
 export interface Consulta {
-  id: string;
+  consulta_id: number;
   user_id: string;
-  tipo_consulta: string;
+  key_id?: string | null;
+  tipo_consulta: TipoConsulta;
   score_risco: number;
   resultado: Record<string, any>;
   data_consulta: Date;
@@ -9,7 +15,7 @@ export interface Consulta {
 
 export type CreateConsultaDTO = Omit<
   Consulta,
-  "id" | "data_consulta"
+  "consulta_id" | "data_consulta"
 >;
 
 export interface ConsultaDetalhe {
@@ -20,6 +26,8 @@ export interface ConsultaDetalhe {
   mensagem: string;
   risco: string;
 }
+
+
 
 export type CreateConsultaDetalheDTO = Omit<
   ConsultaDetalhe,

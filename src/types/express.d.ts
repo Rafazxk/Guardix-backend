@@ -6,10 +6,13 @@ declare global {
   namespace Express {
     interface Request {
       user?: {
-        id: string;
+        id?: string;
+        user_id?: string;
         email?: string;
+        nome?: string;
         plano?: string;
-        [key: string]: any;
+        key_id?: string;
+        ativa?: boolean;
       };
       file?: Multer.File;
       files?: Express.Multer.File[] | { [fieldname: string]: Express.Multer.File[] };

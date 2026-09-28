@@ -23,7 +23,7 @@ class ConsultaController {
     try {
 
       const user_id = req.user?.id;
-      const plano = req.user?.plano || "free"; // Resgata o plano do token/middleware (padrão 'free')
+      const plano = req.user?.plano || "free"; 
 
       if (!user_id) {
         return res.status(401).json({
@@ -33,7 +33,7 @@ class ConsultaController {
 
       const resultado = await ConsultaService.execute({
         user_id,
-        plano, // Repassado para o orquestrador aplicar as regras do Pro/Free
+        plano, 
         tipo,
         input: {
           url: req.body.url,

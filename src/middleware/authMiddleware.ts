@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import pool from "../config/database.js"; 
+
 interface JwtPayload {
-  user_id: string;
+  id?: string;
+  user_id?: string;
   email: string;
 }
 
@@ -12,12 +14,9 @@ export default async function authMiddleware(
   next: NextFunction
 ): Promise<void> {
 
-  console.log("1. Middleware recebendo requisição...");
-
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    console.log("Erro: Header ausente");
     res.status(401).json({ error: "Token não fornecido" });
     return;
   }
@@ -35,31 +34,37 @@ export default async function authMiddleware(
       process.env.JWT_SECRET!
     ) as JwtPayload;
 
-    // Busca o plano atual do usuário direto no PostgreSQL
+    const userId = decoded.id || decoded.user_id;
+
+    if (!userId) {
+      res.status(401).json({ error: "Token inválido: ID do usuário ausente no payload" });
+      return;
+    }
+
+
     const userQuery = await pool.query(
       "SELECT plano, status_assinatura FROM users WHERE user_id = $1",
-      [decoded.user_id]
+      [userId]
     );
 
     const userDb = userQuery.rows[0];
 
-    // Se o usuário não existir no banco ou a assinatura estiver inativa/cancelada, recua para 'free'
-    const planoAtivo = (userDb && userDb.status_assinatura === "active") 
+    // Se a assinatura for 'active', usa o plano cadastrado; caso contrário, assume 'free'
+    const planoAtivo = (userDb && (userDb.status_assinatura === "active" || userDb.plano === "free")) 
       ? userDb.plano 
       : "free";
 
-    // Anexa id, email e plano ao req.user
     req.user = {
-      id: decoded.user_id,
+      id: userId,
+      user_id: userId,
       email: decoded.email,
-      plano: planoAtivo,
+      plano: (planoAtivo || "free").toLowerCase(),
     };
-
-    console.log(`Middleware OK | ID: ${req.user.id} | Plano: ${req.user.plano}`);
 
     next();
 
   } catch (err: unknown) {
+    console.error("Erro na verificação do JWT:", err);
     const isExpired = err instanceof jwt.TokenExpiredError;
 
     res.status(401).json({

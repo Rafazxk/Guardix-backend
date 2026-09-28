@@ -8,6 +8,10 @@ import userRoutes from './auth/routes/userRoutes.js';
 import feedRoutes from './client/routes/feedRoutes.js';
 import whatappRoutes from './client/routes/whatsappRoutes.js';
 import vericationCodeRoutes from './auth/routes/VerificationCodeRoutes.js';
+import apiAuth from "./middleware/apiAuth.js";
+import v1Routes from './auth/api.js';
+import authMiddleware from './middleware/authMiddleware.js';
+import b2bRoutes from './client/routes/b2bRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +28,9 @@ app.use('/api', consultaRoutes);
 app.use('/stats', feedRoutes);
 app.use('/wpp', whatappRoutes);
 app.use('/verification', vericationCodeRoutes);
+
+app.use('/api/keys', authMiddleware, v1Routes);
+app.use('/v1', apiAuth, b2bRoutes);
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);

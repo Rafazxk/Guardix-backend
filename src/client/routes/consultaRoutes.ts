@@ -3,15 +3,14 @@ import express from 'express';
 import ConsultaController from '../controllers/ConsultaController.js';
 // import WebhookController from '../controllers/WebhookController.js';
 import authMiddleware from '../../middleware/authMiddleware.js';
-import pool from '../../config/database.js';
 import upload from '../../middleware/upload.js';
-import { QueryResult } from 'pg';
+import { checkPlanLimits } from '../../middleware/checkPlanLimits.js';
 
 const router = Router();
 
-router.post('/link', authMiddleware, ConsultaController.analisarLink);
-router.post('/phone', authMiddleware, ConsultaController.analisarTelefone);
-router.get('/historico', authMiddleware, ConsultaController.obterHistorico);
+router.post('/link', authMiddleware, checkPlanLimits('link'), ConsultaController.analisarLink);
+router.post('/phone', authMiddleware, checkPlanLimits('telefone'),ConsultaController.analisarTelefone);
+router.get('/historico', authMiddleware, checkPlanLimits('print'), ConsultaController.obterHistorico);
 
 router.get(
   '/stats/live',
@@ -19,10 +18,7 @@ router.get(
   ConsultaController.obterStatsLive
 );
 
-// Rota de Print (Com Middleware do Multer tipado)
 router.post('/print', authMiddleware, upload.single('imagem'), ConsultaController.analisarPrint);
 
-// Rota de Webhook (Utilizando body bruto com Express)
-// router.post('/api/webhook', express.raw({ type: 'application/json' }), WebhookController.handle);
 
 export default router;

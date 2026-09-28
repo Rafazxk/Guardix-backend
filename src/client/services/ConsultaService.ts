@@ -6,6 +6,7 @@ import ConsultaAnalysisService, {
 
 interface ConsultaServiceInput {
   user_id: string;
+  key_id?: string;
   tipo: TipoConsulta;
   input: {
     url?: string;
@@ -16,7 +17,7 @@ interface ConsultaServiceInput {
 }
 
 class ConsultaService {
-  async execute({ user_id, tipo, input }: ConsultaServiceInput) {
+  async execute({ user_id, key_id, tipo, input }: ConsultaServiceInput) {
     const resultado = await ConsultaAnalysisService.execute(tipo, input);
 
     const alvoIdentificado =
@@ -26,6 +27,7 @@ class ConsultaService {
 
     const novaConsulta = await ConsultaRepository.create({
       user_id,
+      key_id,
       tipo_consulta: tipo,
       score_risco: resultado.score,
       resultado: { nivel: resultado.classificacao || resultado.nivel },
@@ -38,7 +40,7 @@ class ConsultaService {
         if (!jaExiste) {
           await PrintRepository.save({
             id_hash: resultado.id_hash,
-            consulta_id: (novaConsulta as any).consulta_id || novaConsulta.id,
+            consulta_id: (novaConsulta as any).consulta_id || novaConsulta.consulta_id,
             caminho_arquivo: input.image_path,
             texto_extraido: resultado.texto_extraido,
             tipo_golpe: resultado.classificacao,
