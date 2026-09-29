@@ -3,29 +3,38 @@ import FeedService from "../services/FeedService.js";
 
 class FeedController {
 
-  async listarFeed(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+ async listarFeed(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  try {
+    const busca = String(req.query.busca ?? "");
 
-    try {
+    const page = Math.max(
+      Number(req.query.page) || 1,
+      1
+    );
 
-      const feed = await FeedService.listarFeed();
+    const limit = Math.min(
+      Math.max(Number(req.query.limit) || 10, 1),
+      50
+    );
 
-      return res.json(feed);
+    const feed = await FeedService.listarFeed(
+      busca,
+      page,
+      limit
+    );
 
-    } catch (err: unknown) {
+    return res.json(feed);
+  } catch (err: unknown) {
+    console.error("Erro ao carregar feed:", err);
 
-      console.error(
-        "Erro ao carregar feed:",
-        err
-      );
-
-      return res.status(500).json({
-        error: "Erro interno ao carregar o feed de alertas."
-      });
-    }
+    return res.status(500).json({
+      error: "Erro interno ao carregar o feed de alertas.",
+    });
   }
+}
 
  async listarEstatisticas(
   req: Request,

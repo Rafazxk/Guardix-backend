@@ -1,7 +1,7 @@
 export interface FeedItem {
   tipo: "link" | "telefone";
   valor: string;
-  total: string;
+  total: string; 
 }
 
 export interface FeedStatistics {
@@ -14,4 +14,16 @@ export interface FeedStatistics {
 export interface CreateDenunciaDTO {
   tipo: "link" | "telefone";
   valor: string;
+}
+
+export interface FeedPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface FeedResponse {
+  items: FeedItem[];
+  pagination: FeedPagination;
 }

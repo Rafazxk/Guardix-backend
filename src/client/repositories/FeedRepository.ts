@@ -3,40 +3,83 @@ import db from "../../config/database.js";
 import {
   FeedItem,
   FeedStatistics,
+  FeedResponse,
   CreateDenunciaDTO,
 } from "../../types/interfaces/FeedInterface.js";
 
 class FeedRepository {
-  async listarFeed(): Promise<FeedItem[]> {
-  const query = `
-    SELECT 
-      'link' AS tipo,
-      lr.url AS valor,
-      SUM(lr.denuncias)::text AS total
-    FROM links_reportados lr
-    WHERE lr.url NOT ILIKE '%google.com%'
-      AND lr.url NOT ILIKE '%google.com.br%'
-      AND lr.url NOT ILIKE '%github.com%'
-      AND lr.url NOT ILIKE '%whatsapp.com%'
-      AND lr.url NOT ILIKE '%microsoft.com%'
-      AND lr.url NOT ILIKE '%apple.com%'
-    GROUP BY lr.url
+ async listarFeed(
+  busca: string = "",
+  page: number = 1,
+  limit: number = 10
+): Promise<FeedResponse> {
+  const offset = (page - 1) * limit;
 
-    UNION ALL
+  const query = `
+    WITH feed AS (
+      SELECT
+        'link' AS tipo,
+        lr.url AS valor,
+        SUM(lr.denuncias)::text AS total
+      FROM links_reportados lr
+      WHERE lr.url NOT ILIKE '%google.com%'
+        AND lr.url NOT ILIKE '%google.com.br%'
+        AND lr.url NOT ILIKE '%github.com%'
+        AND lr.url NOT ILIKE '%whatsapp.com%'
+        AND lr.url NOT ILIKE '%microsoft.com%'
+        AND lr.url NOT ILIKE '%apple.com%'
+        AND lr.url ILIKE '%' || $1 || '%'
+      GROUP BY lr.url
+
+      UNION ALL
+
+      SELECT
+        'telefone' AS tipo,
+        tr.numero AS valor,
+        SUM(tr.denuncias)::text AS total
+      FROM telefones_reportados tr
+      WHERE regexp_replace(tr.numero, '\\D', '', 'g')
+        ILIKE '%' || regexp_replace($1, '\\D', '', 'g') || '%'
+      GROUP BY tr.numero
+    )
 
     SELECT
-      'telefone' AS tipo,
-      tr.numero AS valor,
-      SUM(tr.denuncias)::text AS total
-    FROM telefones_reportados tr
-    GROUP BY tr.numero
-
-    ORDER BY total DESC;
+      tipo,
+      valor,
+      total,
+      COUNT(*) OVER() AS total_resultados
+    FROM feed
+    ORDER BY total::integer DESC
+    LIMIT $2
+    OFFSET $3;
   `;
 
-  const result = await db.query<FeedItem>(query);
+  const result = await db.query<FeedItem & { total_resultados: string }>(
+    query,
+    [busca, limit, offset]
+  );
 
-  return result.rows;
+  const total = result.rows.length > 0
+    ? Number(result.rows[0].total_resultados)
+    : 0;
+
+  const items: FeedItem[] = result.rows.map(
+    ({ tipo, valor, total }) => ({
+      tipo,
+      valor,
+      total,
+    })
+  );
+
+  return {
+    items,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 }
 
   async listarEstatisticas(

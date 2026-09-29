@@ -3,9 +3,13 @@ import FeedRepository from "../repositories/FeedRepository.js";
 import { CreateDenunciaDTO } from "../../types/interfaces/FeedInterface.js";
 
 class FeedService {
-  async listarFeed() {
-    return await FeedRepository.listarFeed();
-  }
+ async listarFeed(
+  busca: string = "",
+  page: number = 1,
+  limit: number = 10
+) {
+  return await FeedRepository.listarFeed(busca, page, limit);
+}
 
   async listarEstatisticas(usuarioId: string) {
     return await FeedRepository.listarEstatisticas(usuarioId);
