@@ -15,7 +15,7 @@ class FeedService {
     return await FeedRepository.listarEstatisticas(usuarioId);
   }
 
- async criarDenuncia(data: CreateDenunciaDTO) {
+async criarDenuncia(data: CreateDenunciaDTO) {
   if (!data.tipo) {
     throw new Error("Tipo da denúncia é obrigatório.");
   }
@@ -34,12 +34,12 @@ class FeedService {
       : data.valor.replace(/\D/g, "");
 
   console.log("VALOR RECEBIDO:", data.valor);
-console.log("VALOR NORMALIZADO:", valorNormalizado);
-
+  console.log("VALOR NORMALIZADO:", valorNormalizado);
 
   await FeedRepository.criarDenuncia({
     tipo: data.tipo,
     valor: valorNormalizado,
+    usuarioId: data.usuarioId,
   });
 }
 }

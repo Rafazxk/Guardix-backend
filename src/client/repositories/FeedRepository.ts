@@ -87,39 +87,37 @@ class FeedRepository {
   ): Promise<FeedStatistics> {
     const query = `
       SELECT
-        (
-          SELECT COUNT(*)
-          FROM consultas
-          WHERE user_id = $1
-        ) AS total_consultas,
+  (
+    SELECT COUNT(*)
+    FROM consultas
+    WHERE user_id = $1
+  ) AS total_consultas,
 
-        (
-          SELECT COUNT(*)
-          FROM consultas
-          WHERE user_id = $1
-            AND score_risco >= 70
-        ) AS ameacas_evitadas,
+  (
+    SELECT COUNT(*)
+    FROM consultas
+    WHERE user_id = $1
+      AND score_risco >= 70
+  ) AS ameacas_evitadas,
 
-        (
-          SELECT COUNT(*)
-          FROM consultas
-          WHERE user_id = $1
-            AND score_risco < 70
-        ) AS analises_seguras,
+  (
+    SELECT COUNT(*)
+    FROM consultas
+    WHERE user_id = $1
+      AND score_risco < 70
+  ) AS analises_seguras,
 
-        (
-          SELECT COUNT(*)
-          FROM links_reportados l
-          JOIN consultas c ON l.consulta_id = c.consulta_id
-          WHERE c.user_id = $1
-        )
-        +
-        (
-          SELECT COUNT(*)
-          FROM telefones_reportados t
-          JOIN consultas c ON t.consulta_id = c.consulta_id
-          WHERE c.user_id = $1
-        ) AS total_reportados;
+  (
+    SELECT COUNT(*)
+    FROM links_reportados
+    WHERE user_id = $1
+  )
+  +
+  (
+    SELECT COUNT(*)
+    FROM telefones_reportados
+    WHERE user_id = $1
+  ) AS total_reportados;
     `;
 
     const result = await db.query<FeedStatistics>(
@@ -133,6 +131,7 @@ class FeedRepository {
   async criarDenuncia({
   tipo,
   valor,
+  usuarioId
 }: CreateDenunciaDTO): Promise<void> {
   if (tipo === "link") {
     const existente = await db.query(
@@ -161,11 +160,11 @@ class FeedRepository {
     await db.query(
       `
         INSERT INTO links_reportados
-          (url, denuncias)
+          (url, denuncias, user_id)
         VALUES
-          ($1, 1)
+          ($1, 1, $2)
       `,
-      [valor]
+      [valor, usuarioId]
     );
 
     return;
@@ -197,11 +196,11 @@ class FeedRepository {
   await db.query(
     `
       INSERT INTO telefones_reportados
-        (numero, denuncias)
+        (numero, denuncias, user_id)
       VALUES
-        ($1, 1)
+        ($1, 1, $2)
     `,
-    [valor]
+    [valor, usuarioId]
   );
 }
 }

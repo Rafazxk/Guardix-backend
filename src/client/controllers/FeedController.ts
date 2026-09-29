@@ -65,36 +65,43 @@ class FeedController {
   }
 }
 
-  async criarDenuncia(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+ async criarDenuncia(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  try {
+    const usuarioId = req.user?.user_id;
 
-    try {
-
-      await FeedService.criarDenuncia(req.body);
-
-      return res.status(201).json({
-        message: "Denúncia registrada com sucesso!"
-      });
-
-    } catch (err: unknown) {
-
-      console.error(
-        "Erro ao registrar denúncia:",
-        err
-      );
-
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Erro ao registrar denúncia.";
-
-      return res.status(400).json({
-        error: message
+    if (!usuarioId) {
+      return res.status(401).json({
+        error: "Usuário não autenticado.",
       });
     }
+
+    await FeedService.criarDenuncia({
+      ...req.body,
+      usuarioId,
+    });
+
+    return res.status(201).json({
+      message: "Denúncia registrada com sucesso!",
+    });
+  } catch (err: unknown) {
+    console.error(
+      "Erro ao registrar denúncia:",
+      err
+    );
+
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Erro ao registrar denúncia.";
+
+    return res.status(400).json({
+      error: message,
+    });
   }
+}
 }
 
 export default new FeedController();

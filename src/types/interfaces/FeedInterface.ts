@@ -14,6 +14,7 @@ export interface FeedStatistics {
 export interface CreateDenunciaDTO {
   tipo: "link" | "telefone";
   valor: string;
+  usuarioId: string;
 }
 
 export interface FeedPagination {

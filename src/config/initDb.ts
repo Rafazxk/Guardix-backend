@@ -88,16 +88,27 @@ export const setupDatabase = async (): Promise<void> => {
       -- 8. Telefones Reportados
       DROP TABLE IF EXISTS telefones_reportados CASCADE;
 
-      CREATE TABLE telefones_reportados (
-          telefone_id SERIAL PRIMARY KEY,
-          consulta_id integer UNIQUE REFERENCES consultas(consulta_id),
-          numero varchar NOT NULL,
-          denuncias integer DEFAULT 1,
-          score_spam numeric,
-          operadora varchar,
-          status varchar DEFAULT 'suspeito',
-          data_criacao timestamp DEFAULT CURRENT_TIMESTAMP
-      );
+      CREATE TABLE IF NOT EXISTS telefones_reportados (
+
+    telefone_id SERIAL PRIMARY KEY,
+
+    consulta_id integer UNIQUE REFERENCES consultas(consulta_id),
+
+    numero varchar NOT NULL,
+
+    denuncias integer DEFAULT 1,
+
+    score_spam numeric,
+
+    operadora varchar,
+
+    status varchar DEFAULT 'suspeito',
+
+    data_criacao timestamp DEFAULT CURRENT_TIMESTAMP,
+
+    user_id uuid REFERENCES users(user_id)
+
+);
 
       -- 9. Links Reportados
       CREATE TABLE IF NOT EXISTS links_reportados (
