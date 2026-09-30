@@ -7,6 +7,12 @@ router.get('/feed', authMiddleware, denunciaController.listarFeed);
 
 router.get('/estatisticas', authMiddleware, denunciaController.listarEstatisticas);
 
+router.get(
+  '/relatorio',
+  authMiddleware,
+  denunciaController.listarRelatorio
+);
+
 router.post('/report', authMiddleware, denunciaController.criarDenuncia);
 
 export default router;

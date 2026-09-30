@@ -82,6 +82,62 @@ class FeedRepository {
   };
 }
 
+ async listarRelatorio(usuarioId: string) {
+ const evolucao = await db.query(
+  `
+    SELECT
+      TO_CHAR(DATE(data_consulta), 'YYYY-MM-DD') AS data,
+      COUNT(*) AS total
+    FROM consultas
+    WHERE user_id = $1
+    GROUP BY DATE(data_consulta)
+    ORDER BY DATE(data_consulta) ASC
+  `,
+  [usuarioId]
+);
+
+  const distribuicaoRisco = await db.query(
+    `
+      SELECT
+        CASE
+          WHEN score_risco >= 70 THEN 'alto'
+          WHEN score_risco >= 40 THEN 'medio'
+          ELSE 'baixo'
+        END AS risco,
+        COUNT(*) AS total
+      FROM consultas
+      WHERE user_id = $1
+      GROUP BY
+        CASE
+          WHEN score_risco >= 70 THEN 'alto'
+          WHEN score_risco >= 40 THEN 'medio'
+          ELSE 'baixo'
+        END
+      ORDER BY total DESC
+    `,
+    [usuarioId]
+  );
+
+  const tiposAnalise = await db.query(
+    `
+      SELECT
+        tipo_consulta,
+        COUNT(*) AS total
+      FROM consultas
+      WHERE user_id = $1
+      GROUP BY tipo_consulta
+      ORDER BY total DESC
+    `,
+    [usuarioId]
+  );
+
+  return {
+    evolucao: evolucao.rows,
+    distribuicao_risco: distribuicaoRisco.rows,
+    tipos_analise: tiposAnalise.rows,
+  };
+}
+
   async listarEstatisticas(
     usuarioId: string
   ): Promise<FeedStatistics> {

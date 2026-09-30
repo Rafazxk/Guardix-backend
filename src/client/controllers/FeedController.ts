@@ -102,6 +102,43 @@ class FeedController {
     });
   }
 }
+
+async listarRelatorio(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  try {
+    const usuarioId = req.user?.user_id;
+    const plano = req.user?.plano;
+
+    if (!usuarioId) {
+      return res.status(401).json({
+        error: "Usuário não autenticado.",
+      });
+    }
+
+    if (plano !== "premium") {
+      return res.status(403).json({
+        error: "Relatório avançado disponível apenas para usuários Premium.",
+      });
+    }
+
+    const relatorio =
+      await FeedService.listarRelatorio(usuarioId);
+
+    return res.json(relatorio);
+  } catch (err: unknown) {
+    console.error(
+      "Erro ao buscar relatório avançado:",
+      err
+    );
+
+    return res.status(500).json({
+      error: "Erro ao buscar relatório avançado.",
+    });
+  }
+}
+
 }
 
 export default new FeedController();

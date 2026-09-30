@@ -11,6 +11,10 @@ class FeedService {
   return await FeedRepository.listarFeed(busca, page, limit);
 }
 
+async listarRelatorio(usuarioId: string) {
+  return await FeedRepository.listarRelatorio(usuarioId);
+}
+
   async listarEstatisticas(usuarioId: string) {
     return await FeedRepository.listarEstatisticas(usuarioId);
   }
