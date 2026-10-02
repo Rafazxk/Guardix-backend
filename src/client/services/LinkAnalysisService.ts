@@ -5,6 +5,7 @@ import RiskClassifier from "../domain/classification/RiskClassifier.js";
 import DomainExtractor from "../domain/utils/DomainExtractor.js";
 import LinkRiskInterpreter from "../domain/classification/LinkRiskInterpreter.js";
 import RiskRecommendation from "../domain/classification/RiskRecommendation.js";
+import FeedRepository from "../repositories/FeedRepository.js";
 
 export interface LinkAnalysisContext {
   url: string;
@@ -25,9 +26,11 @@ export interface LinkAnalysisResult {
   tipoGolpe: string;
   alertas: string[];
   conclusao: string;
+  denuncias?: number;
   regrasVioladas?: RegraVioladaLog[];
   mensagem?: string;
   analiseDetalhadaIa?: string; 
+
 }
 
 export class LinkAnalysisService {
@@ -48,26 +51,29 @@ export class LinkAnalysisService {
   async execute(context: LinkAnalysisContext): Promise<LinkAnalysisResult> {
     const planoUser = context.plano?.toLowerCase() || 'free';
 
-    const domain = this.domainExtractor.execute(context.url);
-    if (!domain) {
-      return {
-        score: 0,
-        classificacao: "Inválido",
-        tipoGolpe: "Nenhum",
-        alertas: [],
-        conclusao: "URL Inválida",
-        status: "Erro",
-        mensagem: "URL Inválida"
-      };
-    }
+   const domain = this.domainExtractor.execute(context.url);
 
-    const analiseTecnica = await this.engine.execute({
-      ...context,
-      domain,
-      score: 0,
-      riscos: [],
-      regrasVioladas: [],
-    });
+if (!domain) {
+  return {
+    score: 0,
+    classificacao: "Inválido",
+    tipoGolpe: "Nenhum",
+    alertas: [],
+    conclusao: "URL Inválida",
+    status: "Erro",
+    mensagem: "URL Inválida"
+  };
+}
+
+const denuncias = await FeedRepository.contarDenunciasLink(context.url);
+
+const analiseTecnica = await this.engine.execute({
+  ...context,
+  domain,
+  score: 0,
+  riscos: [],
+  regrasVioladas: [],
+});
 
     if (analiseTecnica.score === 0) {
       return {
@@ -78,6 +84,7 @@ export class LinkAnalysisService {
         classificacao: "Seguro",
         alertas: [],
         conclusao: "Não detectamos ameaças neste link.",
+        denuncias,
       };
     }
 
@@ -99,6 +106,7 @@ export class LinkAnalysisService {
         tipoGolpe,
         alertas: interpretacao.alertas.slice(0, 2), 
         conclusao: recomendacao,
+        denuncias,
       };
     }
 

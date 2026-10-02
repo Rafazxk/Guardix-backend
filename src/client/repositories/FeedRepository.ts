@@ -8,14 +8,14 @@ import {
 } from "../../types/interfaces/FeedInterface.js";
 
 class FeedRepository {
- async listarFeed(
-  busca: string = "",
-  page: number = 1,
-  limit: number = 10
-): Promise<FeedResponse> {
-  const offset = (page - 1) * limit;
+  async listarFeed(
+    busca: string = "",
+    page: number = 1,
+    limit: number = 10
+  ): Promise<FeedResponse> {
+    const offset = (page - 1) * limit;
 
-  const query = `
+    const query = `
     WITH feed AS (
       SELECT
         'link' AS tipo,
@@ -54,37 +54,37 @@ class FeedRepository {
     OFFSET $3;
   `;
 
-  const result = await db.query<FeedItem & { total_resultados: string }>(
-    query,
-    [busca, limit, offset]
-  );
+    const result = await db.query<FeedItem & { total_resultados: string }>(
+      query,
+      [busca, limit, offset]
+    );
 
-  const total = result.rows.length > 0
-    ? Number(result.rows[0].total_resultados)
-    : 0;
+    const total = result.rows.length > 0
+      ? Number(result.rows[0].total_resultados)
+      : 0;
 
-  const items: FeedItem[] = result.rows.map(
-    ({ tipo, valor, total }) => ({
-      tipo,
-      valor,
-      total,
-    })
-  );
+    const items: FeedItem[] = result.rows.map(
+      ({ tipo, valor, total }) => ({
+        tipo,
+        valor,
+        total,
+      })
+    );
 
-  return {
-    items,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
-}
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
 
- async listarRelatorio(usuarioId: string) {
- const evolucao = await db.query(
-  `
+  async listarRelatorio(usuarioId: string) {
+    const evolucao = await db.query(
+      `
     SELECT
       TO_CHAR(DATE(data_consulta), 'YYYY-MM-DD') AS data,
       COUNT(*) AS total
@@ -93,11 +93,11 @@ class FeedRepository {
     GROUP BY DATE(data_consulta)
     ORDER BY DATE(data_consulta) ASC
   `,
-  [usuarioId]
-);
+      [usuarioId]
+    );
 
-  const distribuicaoRisco = await db.query(
-    `
+    const distribuicaoRisco = await db.query(
+      `
       SELECT
         CASE
           WHEN score_risco >= 70 THEN 'alto'
@@ -115,11 +115,11 @@ class FeedRepository {
         END
       ORDER BY total DESC
     `,
-    [usuarioId]
-  );
+      [usuarioId]
+    );
 
-  const tiposAnalise = await db.query(
-    `
+    const tiposAnalise = await db.query(
+      `
       SELECT
         tipo_consulta,
         COUNT(*) AS total
@@ -128,15 +128,31 @@ class FeedRepository {
       GROUP BY tipo_consulta
       ORDER BY total DESC
     `,
-    [usuarioId]
-  );
+      [usuarioId]
+    );
 
-  return {
-    evolucao: evolucao.rows,
-    distribuicao_risco: distribuicaoRisco.rows,
-    tipos_analise: tiposAnalise.rows,
-  };
-}
+    return {
+      evolucao: evolucao.rows,
+      distribuicao_risco: distribuicaoRisco.rows,
+      tipos_analise: tiposAnalise.rows,
+    };
+  }
+
+  async contarDenunciasLink(url: string): Promise<number> {
+    const result = await db.query<{ denuncias: number }>(
+      `
+      SELECT COALESCE(denuncias, 0) AS denuncias
+      FROM links_reportados
+      WHERE url = $1
+      LIMIT 1
+    `,
+      [url]
+    );
+
+    return result.rows.length > 0
+      ? Number(result.rows[0].denuncias)
+      : 0;
+  }
 
   async listarEstatisticas(
     usuarioId: string
@@ -185,29 +201,65 @@ class FeedRepository {
   }
 
   async criarDenuncia({
-  tipo,
-  valor,
-  usuarioId
-}: CreateDenunciaDTO): Promise<void> {
-  if (tipo === "link") {
-    const existente = await db.query(
-      `
+    tipo,
+    valor,
+    usuarioId
+  }: CreateDenunciaDTO): Promise<void> {
+    if (tipo === "link") {
+      const existente = await db.query(
+        `
         SELECT link_id
         FROM links_reportados
         WHERE url = $1
         LIMIT 1
       `,
+        [valor]
+      );
+
+      if (existente.rows.length > 0) {
+        await db.query(
+          `
+          UPDATE links_reportados
+          SET denuncias = denuncias + 1
+          WHERE link_id = $1
+        `,
+          [existente.rows[0].link_id]
+        );
+
+        return;
+      }
+
+      await db.query(
+        `
+        INSERT INTO links_reportados
+          (url, denuncias, user_id)
+        VALUES
+          ($1, 1, $2)
+      `,
+        [valor, usuarioId]
+      );
+
+      return;
+    }
+
+    const existente = await db.query(
+      `
+      SELECT telefone_id
+      FROM telefones_reportados
+      WHERE numero = $1
+      LIMIT 1
+    `,
       [valor]
     );
 
     if (existente.rows.length > 0) {
       await db.query(
         `
-          UPDATE links_reportados
-          SET denuncias = denuncias + 1
-          WHERE link_id = $1
-        `,
-        [existente.rows[0].link_id]
+        UPDATE telefones_reportados
+        SET denuncias = denuncias + 1
+        WHERE telefone_id = $1
+      `,
+        [existente.rows[0].telefone_id]
       );
 
       return;
@@ -215,50 +267,14 @@ class FeedRepository {
 
     await db.query(
       `
-        INSERT INTO links_reportados
-          (url, denuncias, user_id)
-        VALUES
-          ($1, 1, $2)
-      `,
-      [valor, usuarioId]
-    );
-
-    return;
-  }
-
-  const existente = await db.query(
-    `
-      SELECT telefone_id
-      FROM telefones_reportados
-      WHERE numero = $1
-      LIMIT 1
-    `,
-    [valor]
-  );
-
-  if (existente.rows.length > 0) {
-    await db.query(
-      `
-        UPDATE telefones_reportados
-        SET denuncias = denuncias + 1
-        WHERE telefone_id = $1
-      `,
-      [existente.rows[0].telefone_id]
-    );
-
-    return;
-  }
-
-  await db.query(
-    `
       INSERT INTO telefones_reportados
         (numero, denuncias, user_id)
       VALUES
         ($1, 1, $2)
     `,
-    [valor, usuarioId]
-  );
-}
+      [valor, usuarioId]
+    );
+  }
 }
 
 export default new FeedRepository();
