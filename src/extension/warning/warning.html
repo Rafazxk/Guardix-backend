@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Guardix - Alerta de segurança</title>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 600px;
+      padding: 40px;
+
+      text-align: center;
+
+      background: #1c1c1c;
+      border-radius: 16px;
+    }
+
+    h1 {
+      color: #f5b400;
+      margin-bottom: 20px;
+    }
+
+    p {
+      color: #ccc;
+      line-height: 1.6;
+    }
+
+    #url {
+      margin: 20px 0;
+      padding: 15px;
+
+      background: #111;
+      border-radius: 8px;
+
+      word-break: break-all;
+      color: #aaa;
+    }
+
+    .buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 30px;
+}
+
+button {
+  padding: 13px 22px;
+  border: none;
+  border-radius: 8px;
+
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+#back {
+  background: #333;
+  color: #fff;
+}
+
+#continue {
+  background: #f5b400;
+  color: #111;
+}
+.logo {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <img
+  src="../icons/guardix-logo.png"
+  alt="Guardix"
+  class="logo"
+>
+    <h1>⚠️ Atenção</h1>
+
+    <p>
+      O Guardix identificou riscos neste endereço.
+    </p>
+
+    <div id="url">
+      Carregando endereço...
+    </div>
+
+    <p>
+      Recomendamos não continuar caso você não reconheça ou não confie neste site.
+    </p>
+
+    <div class="buttons">
+      <button id="back" type="button">
+        Voltar
+      </button>
+
+      <button id="continue" type="button">
+        Continuar mesmo assim
+      </button>
+    </div>
+
+  </div>
+
+  <script src="warning.js"></script>
+
+</body>
+</html>

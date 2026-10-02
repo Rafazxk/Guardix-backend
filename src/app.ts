@@ -9,8 +9,8 @@ import feedRoutes from './client/routes/feedRoutes.js';
 import whatappRoutes from './client/routes/whatsappRoutes.js';
 import vericationCodeRoutes from './auth/routes/VerificationCodeRoutes.js';
 import apiKeyRoutes from "./client/routes/ApiKeyRoutes.js";
-import B2BRoutes from "./client/routes/b2bRoutes.js";
-import apiAuth from "./middleware/apiAuth.js";
+import B2BRoutes from "./client/routes/B2BRoutes.js";
+import extensionRoutes from "./client/routes/extensionRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +30,7 @@ app.use('/verification', vericationCodeRoutes);
 
 app.use("/api", apiKeyRoutes);
 app.use("/v1", B2BRoutes);
+app.use("/extension", extensionRoutes);
 
 app.use((
    err: Error,
