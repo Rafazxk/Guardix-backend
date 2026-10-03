@@ -1,8 +1,11 @@
 import db from "../../config/database.js";
+import WebhookEventRepository from "../repositories/WebhookEventRepository.js";
 
 interface CheckoutWebhook {
   id: string;
+
   event: string;
+
   checkout?: {
     id?: string;
     externalReference?: string;
@@ -14,6 +17,13 @@ class PaymentWebhookService {
   async process(event: CheckoutWebhook): Promise<void> {
     if (event.event !== "CHECKOUT_PAID") {
       console.log(`Evento Asaas ignorado: ${event.event}`);
+      return;
+    }
+
+    const jaProcessado = await WebhookEventRepository.exists(event.id);
+
+    if (jaProcessado) {
+      console.log(`Webhook já processado: ${event.id}`);
       return;
     }
 
@@ -33,6 +43,11 @@ class PaymentWebhookService {
       `,
       [userId]
     );
+
+    await WebhookEventRepository.create({
+      eventId: event.id,
+      event: event.event,
+    });
 
     console.log(
       `Plano Premium ativado para o usuário ${userId}.`
