@@ -28,6 +28,7 @@ class CheckBlacklist implements LinkFraudRule {
     }
 
     return {
+      tipo: "blacklist",
       pontuacao: 150,
       mensagem: `Domínio listado: ${
         registro.motivo || "sem motivo"

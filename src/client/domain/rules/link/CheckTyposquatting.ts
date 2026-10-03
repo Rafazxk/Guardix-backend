@@ -52,6 +52,7 @@ class CheckTyposquatting implements LinkFraudRule {
 
         if (!isOfficial) {
           return {
+            tipo: "typosquatting",
             pontuacao: 100,
             mensagem: `Marca ${legit} detectada em domínio não oficial`,
           };
@@ -65,6 +66,7 @@ class CheckTyposquatting implements LinkFraudRule {
 
       if (distance >= 1 && distance <= 2) {
         return {
+          tipo: "typosquatting",
           pontuacao: 80,
           mensagem:
             `Domínio visualmente parecido com ${legit}`,

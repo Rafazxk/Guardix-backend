@@ -85,6 +85,7 @@ class CheckDomainAge implements LinkFraudRule {
   ): LinkRuleResult | null {
     if (dias < 7) {
       return {
+        tipo: "dominio_recente",
         pontuacao: 100,
         mensagem: "Domínio extremamente recente",
       };
@@ -92,6 +93,7 @@ class CheckDomainAge implements LinkFraudRule {
 
     if (dias < 30) {
       return {
+        tipo: "dominio_recente",
         pontuacao: 60,
         mensagem: "Domínio criado há menos de 1 mês",
       };
@@ -99,6 +101,7 @@ class CheckDomainAge implements LinkFraudRule {
 
     if (dias < 180) {
       return {
+        tipo: "dominio_recente",
         pontuacao: 30,
         mensagem: "Domínio recente",
       };

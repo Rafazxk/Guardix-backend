@@ -70,6 +70,7 @@ class CheckDomainStructure implements LinkFraudRule {
     }
 
     return {
+      tipo: "estrutura_suspeita",
       pontuacao,
       mensagem: mensagens.join(" | "),
     };
