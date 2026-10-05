@@ -70,6 +70,23 @@ class UserService {
     return { user, token };
   }
 
+async getCurrentUser(userId: string) {
+  const user = await UserRepository.findById(userId);
+
+  if (!user) {
+    throw new Error("Usuário não encontrado.");
+  }
+
+  return {
+    id: user.user_id,
+    nome: user.nome,
+    email: user.email,
+    plano: user.plano,
+    tipo_pessoa: user.tipo_pessoa,
+    email_verified: user.email_verified,
+  };
+}
+
   async virarPro(userId: string | number) {
     const user = await UserRepository.findById(userId);
     if (!user) throw new Error("Usuário não encontrado.");

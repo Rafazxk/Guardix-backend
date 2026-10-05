@@ -34,6 +34,28 @@ export default class UserController {
     }
   }
   
+async me(req: Request, res: Response): Promise<Response> {
+  try {
+    const userId = (req as any).user.user_id;
+
+    if (!userId) {
+      return res.status(401).json({
+        error: "Usuário não autenticado."
+      });
+    }
+
+    const user = await UserService.getCurrentUser(userId);
+
+    return res.status(200).json({
+      user
+    });
+  } catch (err: any) {
+    return res.status(404).json({
+      error: err.message
+    });
+  }
+}
+
   async virarPro(req: Request, res: Response): Promise<Response> {
     try {
       // Usamos 'any' temporariamente ou estendemos a Request se o seu middleware injetar o 'user'

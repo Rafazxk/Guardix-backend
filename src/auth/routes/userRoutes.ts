@@ -9,12 +9,8 @@ const userController = new UserController();
 router.post("/register", (req, res) => userController.register(req, res));
 router.post("/login", (req, res) => userController.login(req, res));
 
-router.get("/me", authMiddleware, (req: Request, res: Response) => {
-  res.json({
-    sucesso: true,
-    mensagem: "Dados do usuário carregados com sucesso!",
-    usuario: req.user,
-  });
-});
+router.get("/me", authMiddleware, (req: Request, res: Response) =>
+  userController.me(req, res)
+);
 
 export default router;
