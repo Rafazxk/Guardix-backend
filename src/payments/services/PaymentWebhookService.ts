@@ -1,15 +1,21 @@
 import db from "../../config/database.js";
+
 import WebhookEventRepository from "../repositories/WebhookEventRepository.js";
 
 interface CheckoutWebhook {
   id: string;
-
   event: string;
 
   checkout?: {
     id?: string;
     externalReference?: string;
     status?: string;
+
+    items?: Array<{
+      name?: string;
+      description?: string;
+      value?: number;
+    }>;
   };
 }
 
@@ -35,13 +41,28 @@ class PaymentWebhookService {
       );
     }
 
+    const nomePlano = event.checkout?.items?.[0]?.name;
+
+    const plano =
+      nomePlano === "Guardix Pro"
+        ? "pro"
+        : nomePlano === "Guardix Premium"
+          ? "premium"
+          : null;
+
+    if (!plano) {
+      throw new Error(
+        `Plano não identificado no checkout: ${nomePlano ?? "não informado"}`
+      );
+    }
+
     await db.query(
       `
       UPDATE users
-      SET plano = 'premium'
-      WHERE user_id = $1
+      SET plano = $1
+      WHERE user_id = $2
       `,
-      [userId]
+      [plano, userId]
     );
 
     await WebhookEventRepository.create({
@@ -50,7 +71,7 @@ class PaymentWebhookService {
     });
 
     console.log(
-      `Plano Premium ativado para o usuário ${userId}.`
+      `Plano ${plano} ativado para o usuário ${userId}.`
     );
   }
 }

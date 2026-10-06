@@ -19,24 +19,30 @@ class PaymentService {
     plano: string;
   }> {
     if (!plano) {
-      throw new Error("Plano não informado.");
-    }
+    throw new Error("Plano não informado.");
+}
 
-    if (plano !== "premium") {
-      throw new Error("Plano inválido.");
-    }
+if (plano !== "pro" && plano !== "premium") {
+    throw new Error("Plano inválido.");
+}
 
-    const apiUrl = process.env.ASAAS_API_URL;
-    const apiKey = process.env.ASAAS_API_KEY;
-    const premiumPrice = Number(process.env.GUARDIX_PREMIUM_PRICE);
+const apiUrl = process.env.ASAAS_API_URL;
+const apiKey = process.env.ASAAS_API_KEY;
 
-    if (!apiUrl || !apiKey) {
-      throw new Error("Configuração do Asaas não encontrada.");
-    }
+const proPrice = Number(process.env.GUARDIX_PRO_PRICE);
+const premiumPrice = Number(process.env.GUARDIX_PREMIUM_PRICE);
 
-    if (!premiumPrice || premiumPrice <= 0) {
-      throw new Error("Preço do plano Premium não configurado.");
-    }
+if (!apiUrl || !apiKey) {
+    throw new Error("Configuração do Asaas não encontrada.");
+}
+
+const price = plano === "pro" ? proPrice : premiumPrice;
+
+if (!price || price <= 0) {
+    throw new Error(
+        `Preço do plano ${plano === "pro" ? "Pro" : "Premium"} não configurado.`
+    );
+}
 
     const successUrl = process.env.GUARDIX_PAYMENT_SUCCESS_URL;
     const cancelUrl = process.env.GUARDIX_PAYMENT_CANCEL_URL;
@@ -65,14 +71,17 @@ class PaymentService {
         expiredUrl,
       },
 
-      items: [
-        {
-          name: "Guardix Premium",
-          description: "Plano Premium mensal do Guardix",
-          quantity: 1,
-          value: premiumPrice,
-        },
-      ],
+    items: [
+    {
+        name: plano === "pro" ? "Guardix Pro" : "Guardix Premium",
+        description:
+            plano === "pro"
+                ? "Plano Pro mensal do Guardix"
+                : "Plano Premium mensal do Guardix",
+        quantity: 1,
+        value: price,
+    },
+],
 
       subscription: {
         cycle: "MONTHLY",
