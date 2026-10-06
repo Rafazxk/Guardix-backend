@@ -86,7 +86,6 @@ export const setupDatabase = async (): Promise<void> => {
       );
 
       -- 8. Telefones Reportados
-      DROP TABLE IF EXISTS telefones_reportados CASCADE;
 
       CREATE TABLE IF NOT EXISTS telefones_reportados (
 
