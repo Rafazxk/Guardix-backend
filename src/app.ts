@@ -9,7 +9,7 @@ import feedRoutes from './client/routes/feedRoutes.js';
 import whatappRoutes from './client/routes/whatsappRoutes.js';
 import vericationCodeRoutes from './auth/routes/VerificationCodeRoutes.js';
 import apiKeyRoutes from "./client/routes/ApiKeyRoutes.js";
-import B2BRoutes from "./client/routes/B2BRoutes.js";
+import b2bRoutes from "./client/routes/b2bRoutes.js";
 import extensionRoutes from "./client/routes/extensionRoutes.js";
 import PaymentRoutes from "./payments/routes/paymentRoutes.js";
 
@@ -30,7 +30,7 @@ app.use('/wpp', whatappRoutes);
 app.use('/verification', vericationCodeRoutes);
 
 app.use("/api", apiKeyRoutes);
-app.use("/v1", B2BRoutes);
+app.use("/v1", b2bRoutes);
 app.use("/extension", extensionRoutes);
 app.use("/payments", PaymentRoutes);
 
