@@ -62,3 +62,19 @@ export const checkPlanLimits = (tipoConsulta: 'link' | 'telefone' | 'print') => 
     }
   };
 };
+
+export const checkPlan = (planoPermitido: string) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const planoAtual = req.user?.plano?.toLowerCase() || "free";
+
+    if (planoAtual !== planoPermitido.toLowerCase()) {
+      res.status(403).json({
+        erro: "Plano insuficiente.",
+        mensagem: `Este recurso está disponível apenas para usuários ${planoPermitido}.`,
+      });
+      return;
+    }
+
+    next();
+  };
+};

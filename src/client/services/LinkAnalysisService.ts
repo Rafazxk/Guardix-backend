@@ -15,6 +15,8 @@ export interface LinkAnalysisContext {
 
 export interface RegraVioladaLog {
   regra: string;
+  tipo: string;
+  pontuacao: number;
   mensagem: string;
 }
 
@@ -30,7 +32,6 @@ export interface LinkAnalysisResult {
   regrasVioladas?: RegraVioladaLog[];
   mensagem?: string;
   analiseDetalhadaIa?: string; 
-
 }
 
 export class LinkAnalysisService {
@@ -47,6 +48,45 @@ export class LinkAnalysisService {
     this.riskInterpreter = new LinkRiskInterpreter();
     this.riskRecommendation = new RiskRecommendation();
   }
+
+  private gerarAnaliseDetalhada(
+    domain: string,
+    classificacao: string,
+    tipoGolpe: string,
+    alertas: string[],
+    regrasVioladas: RegraVioladaLog[],
+    recomendacao: string
+): string {
+    const indicadores =
+        regrasVioladas.length > 0
+            ? regrasVioladas
+                  .map(
+                      (regra, index) =>
+                          `${index + 1}. ${regra.mensagem} (${regra.pontuacao} pontos)`
+                  )
+                  .join("\n")
+            : "Nenhum indicador técnico adicional foi identificado.";
+
+    const alertasFormatados =
+        alertas.length > 0
+            ? alertas.map((alerta) => `• ${alerta}`).join("\n")
+            : "Nenhum alerta adicional.";
+
+    return [
+        `O domínio ${domain} foi classificado como ${classificacao}.`,
+        "",
+        `Tipo de ameaça: ${tipoGolpe}.`,
+        "",
+        `Indicadores de risco encontrados:`,
+        indicadores,
+        "",
+        `Principais alertas:`,
+        alertasFormatados,
+        "",
+        `Recomendação:`,
+        recomendacao,
+    ].join("\n");
+}
 
   async execute(context: LinkAnalysisContext): Promise<LinkAnalysisResult> {
     const planoUser = context.plano?.toLowerCase() || 'free';
@@ -121,7 +161,14 @@ const analiseTecnica = await this.engine.execute({
       alertas: interpretacao.alertas,
       conclusao: recomendacao,
       regrasVioladas: logsTecnicos, 
-      analiseDetalhadaIa: `Este domínio (${domain}) ativou ${logsTecnicos.length} indicadores de risco. Recomendamos não inserir dados de cartão de crédito nem credenciais pessoais.`
+      analiseDetalhadaIa: this.gerarAnaliseDetalhada(
+        domain,
+        classificacao,
+        tipoGolpe,
+        interpretacao.alertas,
+        logsTecnicos,
+        recomendacao
+    ),  
     };
   }
 }

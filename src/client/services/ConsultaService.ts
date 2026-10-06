@@ -17,8 +17,11 @@ interface ConsultaServiceInput {
 }
 
 class ConsultaService {
-  async execute({ user_id, key_id, tipo, input }: ConsultaServiceInput) {
-    const resultado = await ConsultaAnalysisService.execute(tipo, input);
+  async execute({ user_id, key_id, tipo, input, plano }: ConsultaServiceInput) {
+    const resultado = await ConsultaAnalysisService.execute(tipo, {
+      ...input,
+      plano,
+    });
 
     const alvoIdentificado =
       tipo === "link" ? input.url :
@@ -54,19 +57,23 @@ class ConsultaService {
 
     const valorIdentificado = tipo === "link" ? input.url : tipo === "telefone" ? input.numero : "Print/Imagem";
 
-    return {
-      score: resultado.score,
-      classificacao: resultado.classificacao || resultado.nivel,
-      conclusao: resultado.conclusao || (resultado.score >= 60 ? "Risco Detectado" : "Parece Seguro"),
-      regrasVioladas: resultado.regrasVioladas || [],
-      detalhes: {
-        tipo,
-        tipoGolpe: resultado.tipoGolpe || "Indeterminado",
-        valor: valorIdentificado,
-        denuncias: resultado.denuncias || 0,
-        servico: resultado.servico || "Análise Padrão",
-      },
-    };
+   return {
+  score: resultado.score,
+  classificacao: resultado.classificacao || resultado.nivel,
+  conclusao:
+    resultado.conclusao ||
+    (resultado.score >= 60 ? "Risco Detectado" : "Parece Seguro"),
+  regrasVioladas: resultado.regrasVioladas || [],
+  analiseDetalhadaIa: resultado.analiseDetalhadaIa,
+
+  detalhes: {
+    tipo,
+    tipoGolpe: resultado.tipoGolpe || "Indeterminado",
+    valor: valorIdentificado,
+    denuncias: resultado.denuncias || 0,
+    servico: resultado.servico || "Análise Padrão",
+  },
+};
   }
 }
 

@@ -14,12 +14,6 @@ class ConsultaController {
     tipo: TipoConsulta
   ): Promise<Response> => {
 
-    console.log(
-      "Iniciando análise do tipo:",
-      tipo,
-      req.body
-    );
-
     try {
 
       const user_id = req.user?.id;

@@ -10,7 +10,6 @@ const router = Router();
 
 router.post('/link', authMiddleware, checkPlanLimits('link'), ConsultaController.analisarLink);
 router.post('/phone', authMiddleware, checkPlanLimits('telefone'),ConsultaController.analisarTelefone);
-router.get('/historico', authMiddleware, checkPlanLimits('print'), ConsultaController.obterHistorico);
 
 router.get(
   '/stats/live',
@@ -18,7 +17,19 @@ router.get(
   ConsultaController.obterStatsLive
 );
 
-router.post('/print', authMiddleware, upload.single('imagem'), ConsultaController.analisarPrint);
+router.get(
+  '/historico',
+  authMiddleware,
+  ConsultaController.obterHistorico
+);
+
+router.post(
+  '/print',
+  authMiddleware,
+  checkPlanLimits('print'),
+  upload.single('imagem'),
+  ConsultaController.analisarPrint
+);
 
 
 export default router;

@@ -1,18 +1,36 @@
-import express from 'express';
-const router = express.Router();
-import denunciaController from '../controllers/FeedController.js';
+import express from "express";
+
 import authMiddleware from "../../middleware/authMiddleware.js";
+import { checkPlan } from "../../middleware/checkPlanLimits.js";
+import denunciaController from "../controllers/FeedController.js";
 
-router.get('/feed', authMiddleware, denunciaController.listarFeed);
-
-router.get('/estatisticas', authMiddleware, denunciaController.listarEstatisticas);
+const router = express.Router();
 
 router.get(
-  '/relatorio',
+  "/feed",
   authMiddleware,
+  checkPlan("premium"),
+  denunciaController.listarFeed
+);
+
+router.get(
+  "/estatisticas",
+  authMiddleware,
+  checkPlan("premium"),
+  denunciaController.listarEstatisticas
+);
+
+router.get(
+  "/relatorio",
+  authMiddleware,
+  checkPlan("premium"),
   denunciaController.listarRelatorio
 );
 
-router.post('/report', authMiddleware, denunciaController.criarDenuncia);
+router.post(
+  "/report",
+  authMiddleware,
+  denunciaController.criarDenuncia
+);
 
 export default router;

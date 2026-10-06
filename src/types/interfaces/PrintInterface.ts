@@ -12,6 +12,7 @@ export type CreatePrintDTO = Omit<Print, "id">;
 
 export interface PrintAnalysisInput {
   image_path: string;
+  plano?: string;
 }
 
 export interface PrintAnalysisData {

@@ -74,20 +74,7 @@ class ConsultaRepository {
           ]
         );
 
-      } else if (data.tipo_consulta === "print") {
-
-        await client.query(
-          `
-            INSERT INTO prints_analisados
-            (consulta_id, caminho_arquivo)
-            VALUES ($1, $2)
-          `,
-          [
-            novaConsulta.consulta_id,
-            data.alvo
-          ]
-        );
-      }
+      } 
     }
 
     await client.query("COMMIT");

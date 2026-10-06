@@ -12,9 +12,82 @@ import {
 } from "../../types/interfaces/PrintInterface.js";
 
 class PrintAnalysisService {
+  private gerarAnaliseDetalhada(
+  score: number,
+  classificacao: string,
+  alertas: string[],
+  conclusao: string,
+  textoExtraido?: string
+): string {
+
+  const explicacao: string[] = [];
+
+  explicacao.push(
+    `A imagem foi classificada como ${classificacao}.`
+  );
+
+  explicacao.push("");
+
+  explicacao.push(`Score de risco: ${score}.`);
+
+  explicacao.push("");
+
+  if (alertas.length > 0) {
+    explicacao.push("Indicadores identificados:");
+
+    alertas.forEach((alerta, index) => {
+      explicacao.push(`${index + 1}. ${alerta}`);
+    });
+  } else {
+    explicacao.push(
+      "Nenhum indicador de risco foi identificado na imagem."
+    );
+  }
+
+  explicacao.push("");
+
+  if (textoExtraido) {
+    explicacao.push(
+      "O OCR identificou texto na imagem, que foi utilizado como parte da análise."
+    );
+  } else {
+    explicacao.push(
+      "Nenhum texto relevante foi extraído da imagem."
+    );
+  }
+
+  explicacao.push("");
+
+  explicacao.push(`Conclusão: ${conclusao}`);
+
+  explicacao.push("");
+
+  if (
+    classificacao === "Golpe" ||
+    score >= 100
+  ) {
+    explicacao.push(
+      "Recomendação: não realize pagamentos, não forneça dados pessoais e bloqueie o contato responsável pelo envio."
+    );
+  } else if (
+    classificacao === "Suspeito" ||
+    score >= 50
+  ) {
+    explicacao.push(
+      "Recomendação: não forneça dados pessoais ou financeiros sem confirmar a autenticidade das informações."
+    );
+  } else {
+    explicacao.push(
+      "Recomendação: nenhum risco imediato foi identificado, mas mantenha os cuidados básicos de segurança."
+    );
+  }
+
+  return explicacao.join("\n");
+}
 
   async execute({
-    image_path
+    image_path,
+    plano
   }: PrintAnalysisInput): Promise<PrintAnalysisResponse> {
 
     if (!image_path) {
@@ -65,7 +138,8 @@ class PrintAnalysisService {
           fatores: result.fatoresDetectados,
           texto_extraido: text
         },
-        id_hash
+        id_hash,
+        plano
       );
 
     } catch (error) {
@@ -83,7 +157,8 @@ class PrintAnalysisService {
 
   private formatResponse(
     dados: PrintAnalysisData,
-    id_hash: string
+    id_hash: string,
+    plano?: string
   ): PrintAnalysisResponse {
 
     const {
@@ -117,17 +192,33 @@ class PrintAnalysisService {
       return "Padrão suspeito detectado.";
     });
 
-    return {
-      id_hash,
-      texto_extraido,
-      score: Number(score),
-      classificacao,
-      alertas: [...new Set(alertasHumanos)],
-      conclusao: this.buildConclusion(
-        Number(score),
-        classificacao
-      )
-    };
+    const alertas = [...new Set(alertasHumanos)];
+
+const conclusao = this.buildConclusion(
+  Number(score),
+  classificacao
+);
+
+return {
+  id_hash,
+  texto_extraido,
+  score: Number(score),
+  classificacao,
+  alertas,
+  conclusao,
+
+  ...(plano?.toLowerCase() !== "free"
+    ? {
+        analiseDetalhadaIa: this.gerarAnaliseDetalhada(
+          Number(score),
+          classificacao,
+          alertas,
+          conclusao,
+          texto_extraido
+        )
+      }
+    : {})
+};
   }
 
   private buildConclusion(

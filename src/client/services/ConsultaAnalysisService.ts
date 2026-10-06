@@ -8,6 +8,7 @@ export interface AnalysisInput {
   url?: string;
   numero?: string;
   image_path?: string;
+  plano?: string;
 }
 
 export interface ConsultaAnalysisResult {
@@ -15,26 +16,31 @@ export interface ConsultaAnalysisResult {
   classificacao?: string;
   nivel?: string;
   conclusao?: string;
+
   regrasVioladas?: Array<{
     regra: string;
+    tipo: string;
+    pontuacao: number;
     mensagem: string;
   }>;
+
   tipoGolpe?: string;
   denuncias?: number;
   servico?: string;
-
   id_hash?: string;
   texto_extraido?: string;
+  analiseDetalhadaIa?: string;
 }
 
 class ConsultaAnalysisService {
 
   async execute(
     tipo: TipoConsulta,
-    input: AnalysisInput
+    input: AnalysisInput,
   ): Promise<ConsultaAnalysisResult> {
 
     const services = {
+
       link: async () => {
         if (!input.url) {
           throw new Error("URL não informada.");
@@ -42,6 +48,7 @@ class ConsultaAnalysisService {
 
         return LinkAnalysisService.execute({
           url: input.url,
+          plano: input.plano,
         });
       },
 
@@ -52,18 +59,21 @@ class ConsultaAnalysisService {
 
         return PhoneAnalysisService.execute({
           numero: input.numero,
+          plano: input.plano,
         });
       },
 
       print: async () => {
-        if (!input.image_path) {
-          throw new Error("Arquivo de imagem não informado.");
-        }
+  if (!input.image_path) {
+    throw new Error("Arquivo de imagem não informado.");
+  }
 
-        return PrintAnalysisService.execute({
-          image_path: input.image_path,
-        });
-      },
+  return PrintAnalysisService.execute({
+    image_path: input.image_path,
+    plano: input.plano
+  });
+},
+
     };
 
     const service = services[tipo];
@@ -77,3 +87,4 @@ class ConsultaAnalysisService {
 }
 
 export default new ConsultaAnalysisService();
+
