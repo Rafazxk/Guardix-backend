@@ -8,8 +8,10 @@ RUN npm install
 
 COPY . .
 
+RUN npm run build
+
 RUN mkdir -p uploads
 
 EXPOSE 10000
 
-CMD ["node", "src/server.js"]
+CMD ["npm", "start"]
