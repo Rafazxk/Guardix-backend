@@ -12,6 +12,7 @@ import apiKeyRoutes from "./client/routes/ApiKeyRoutes.js";
 import b2bRoutes from "./client/routes/b2bRoutes.js";
 import extensionRoutes from "./client/routes/extensionRoutes.js";
 import PaymentRoutes from "./payments/routes/paymentRoutes.js";
+import whatsappConnectionRoutes from "./whatsapp/routes/whatsappRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,6 +34,8 @@ app.use("/api", apiKeyRoutes);
 app.use("/v1", b2bRoutes);
 app.use("/extension", extensionRoutes);
 app.use("/payments", PaymentRoutes);
+
+app.use("/whatsapp", whatsappConnectionRoutes);
 
 app.use((
    err: Error,
