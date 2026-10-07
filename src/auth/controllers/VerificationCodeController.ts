@@ -74,14 +74,13 @@ class VerificationCodeController {
       await VerificationCodeRepository.markEmailAsVerified(user.user_id);
 
       return res.status(200).json({
-        message: `Seja bem-vindo ao Guardix, ${user.nome}!`,
-        token: "authenticated", 
-        user: {
-          id: user.user_id,
-          nome: user.nome,
-          email: user.email,
-        },
-      });
+    message: `E-mail verificado com sucesso, ${user.nome}!`,
+    user: {
+        id: user.user_id,
+        nome: user.nome,
+        email: user.email,
+    },
+});
     } catch (error) {
       console.error("Erro ao verificar código:", error);
       return res.status(500).json({ message: "Erro interno ao verificar o código." });

@@ -17,6 +17,7 @@ export const setupDatabase = async (): Promise<void> => {
           stripe_customer_id varchar(255) UNIQUE,
           stripe_subscription_id varchar(255) UNIQUE,
           fim_periodo_atual timestamp,
+          email_verified 
           data_criacao timestamp DEFAULT CURRENT_TIMESTAMP,
           tipo_pessoa varchar DEFAULT 'Pessoa física'
       );
