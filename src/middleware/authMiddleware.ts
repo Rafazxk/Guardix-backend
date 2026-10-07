@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import pool from "../config/database.js"; 
+import pool from "../config/database.js";
 
 interface JwtPayload {
   id?: string;
@@ -13,18 +13,21 @@ export default async function authMiddleware(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    res.status(401).json({ error: "Token não fornecido" });
+    res.status(401).json({
+      error: "Token não fornecido",
+    });
     return;
   }
 
-  const token = authHeader.split(" ")[1];
+  const [scheme, token] = authHeader.split(" ");
 
-  if (!token) {
-    res.status(401).json({ error: "Token não fornecido" });
+  if (scheme !== "Bearer" || !token) {
+    res.status(401).json({
+      error: "Token inválido",
+    });
     return;
   }
 
@@ -37,40 +40,64 @@ export default async function authMiddleware(
     const userId = decoded.id || decoded.user_id;
 
     if (!userId) {
-      res.status(401).json({ error: "Token inválido: ID do usuário ausente no payload" });
+      res.status(401).json({
+        error: "Token inválido: ID do usuário ausente no payload",
+      });
       return;
     }
 
-
     const userQuery = await pool.query(
-      "SELECT plano, status_assinatura FROM users WHERE user_id = $1",
+      `
+        SELECT
+          user_id,
+          email,
+          plano,
+          status_assinatura
+        FROM users
+        WHERE user_id = $1
+      `,
       [userId]
     );
 
     const userDb = userQuery.rows[0];
 
-    // Se a assinatura for 'active', usa o plano cadastrado; caso contrário, assume 'free'
-    const planoAtivo = (userDb && (userDb.status_assinatura === "active" || userDb.plano === "free")) 
-      ? userDb.plano 
-      : "free";
+    if (!userDb) {
+      res.status(401).json({
+        error: "Usuário não encontrado",
+      });
+      return;
+    }
+
+    const planoAtual =
+      typeof userDb.plano === "string" && userDb.plano.trim()
+        ? userDb.plano.toLowerCase()
+        : "free";
 
     req.user = {
-      id: userId,
-      user_id: userId,
-      email: decoded.email,
-      plano: (planoAtivo || "free").toLowerCase(),
+      id: userDb.user_id,
+      user_id: userDb.user_id,
+      email: userDb.email || decoded.email,
+      plano: planoAtual,
     };
 
-    next();
+    console.log("[AUTH]", {
+      userId: userDb.user_id,
+      email: userDb.email,
+      plano: planoAtual,
+      statusAssinatura: userDb.status_assinatura,
+    });
 
+    next();
   } catch (err: unknown) {
     console.error("Erro na verificação do JWT:", err);
+
     const isExpired = err instanceof jwt.TokenExpiredError;
 
     res.status(401).json({
       error: isExpired ? "Token expirado" : "Token inválido",
       expired: isExpired,
     });
+
     return;
   }
 }
