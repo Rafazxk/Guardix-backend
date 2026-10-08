@@ -6,43 +6,47 @@ import ConsultaAnalysisService, {
   type TipoConsulta,
 } from "./ConsultaAnalysisService.js";
 
+import WhatsappConnectionService from "../../whatsapp/services/WhatsappConnectionService.js";
+
 class WhatsAppBotService {
   private token = process.env.WHATSAPP_ACCESS_TOKEN;
-  private phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  private phoneNumberId =
+    process.env.WHATSAPP_PHONE_NUMBER_ID;
 
   private async sendWhatsAppMessage(
-  to: string,
-  bodyText: string
-): Promise<void> {
-  try {
-    await axios.post(
-      `https://graph.facebook.com/v25.0/${this.phoneNumberId}/messages`,
-      {
-        messaging_product: "whatsapp",
-        to,
-        type: "text",
-        text: {
-          body: bodyText,
+    to: string,
+    bodyText: string
+  ): Promise<void> {
+    try {
+      await axios.post(
+        `https://graph.facebook.com/v25.0/${this.phoneNumberId}/messages`,
+        {
+          messaging_product: "whatsapp",
+          to,
+          type: "text",
+          text: {
+            body: bodyText,
+          },
         },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    console.log("✅ Mensagem enviada pelo WhatsApp.");
-  } catch (error: any) {
-    console.error(
-      "❌ ERRO REAL DA META:",
-      JSON.stringify(error.response?.data, null, 2)
-    );
+      console.log("✅ Mensagem enviada pelo WhatsApp.");
+    } catch (error: any) {
+      console.error(
+        "❌ ERRO REAL DA META:",
+        JSON.stringify(error.response?.data, null, 2)
+      );
 
-    throw error;
+      throw error;
+    }
   }
-}
 
   private async baixarESalvarMidiaMeta(
     mediaId: string
@@ -84,18 +88,62 @@ class WhatsAppBotService {
     return localPath;
   }
 
-private ehNumeroTelefone(text: string): boolean {
-  const apenasNumeros = text.replace(/\D/g, "");
+  private ehNumeroTelefone(text: string): boolean {
+    const apenasNumeros = text.replace(/\D/g, "");
 
-  return apenasNumeros.length >= 10 && apenasNumeros.length <= 13;
-}
+    return (
+      apenasNumeros.length >= 10 &&
+      apenasNumeros.length <= 13
+    );
+  }
 
   public async handleWhatsAppMessage(
     messageData: any
   ): Promise<void> {
     const senderPhone = messageData.from;
 
+    /*
+     * Verifica se o número do WhatsApp
+     * está vinculado a uma conta Guardix.
+     */
+    console.log("📱 WhatsApp recebido:", senderPhone);
+
+    const user =
+      await WhatsappConnectionService.findUserByPhone(
+        senderPhone
+      );
+
+      console.log("👤 Usuário encontrado pelo WhatsApp:", user);
+
+    if (!user) {
+      await this.sendWhatsAppMessage(
+        senderPhone,
+        `🔒 *Acesso não autorizado.*
+
+Este número não está vinculado a uma conta Guardix Premium.
+
+Para utilizar o Guardix pelo WhatsApp, vincule este número a uma conta Premium.`
+      );
+
+      return;
+    }
+
+    /*
+     * O chatbot é exclusivo do plano Premium.
+     */
+    if (user.plano.toLowerCase() !== "premium") {
+      await this.sendWhatsAppMessage(
+        senderPhone,
+        `🔒 *Recurso exclusivo Premium.*
+
+O chatbot do Guardix pelo WhatsApp está disponível apenas para usuários do plano Premium.`
+      );
+
+      return;
+    }
+
     let tipoConsulta: TipoConsulta;
+
     let inputPayload: {
       url?: string;
       numero?: string;
@@ -103,63 +151,71 @@ private ehNumeroTelefone(text: string): boolean {
     };
 
     if (messageData.type === "text") {
-  const text = messageData.text.body.trim();
-  const textoNormalizado = text.toLowerCase();
+      const text = messageData.text.body.trim();
 
-  const saudacoes = [
-    "oi",
-    "olá",
-    "ola",
-    "oie",
-    "eai",
-    "e aí",
-    "bom dia",
-    "boa tarde",
-    "boa noite",
-    "menu",
-    "ajuda",
-  ];
+      const textoNormalizado =
+        text.toLowerCase();
 
-  if (saudacoes.includes(textoNormalizado)) {
-    await this.sendWhatsAppMessage(
-      senderPhone,
-      `🛡️ *Olá! Eu sou o Guardix.*
+      const saudacoes = [
+        "oi",
+        "olá",
+        "ola",
+        "oie",
+        "eai",
+        "e aí",
+        "bom dia",
+        "boa tarde",
+        "boa noite",
+        "menu",
+        "ajuda",
+      ];
+
+      if (saudacoes.includes(textoNormalizado)) {
+        await this.sendWhatsAppMessage(
+          senderPhone,
+          `🛡️ *Olá! Eu sou o Guardix.*
 
 Posso analisar:
 
 🔗 *Links suspeitos*
+
 📱 *Números de telefone*
+
 🖼️ *Imagens e prints*
 
 Envie o conteúdo que deseja verificar.`
-    );
+        );
 
-    return;
-  }
+        return;
+      }
 
-  if (text.startsWith("http")) {
-    tipoConsulta = "link";
+      if (text.startsWith("http")) {
+        tipoConsulta = "link";
 
-    inputPayload = {
-      url: text,
-    };
-  } else if (this.ehNumeroTelefone(text)) {
-    tipoConsulta = "telefone";
+        inputPayload = {
+          url: text,
+        };
+      } else if (
+        this.ehNumeroTelefone(text)
+      ) {
+        tipoConsulta = "telefone";
 
-    inputPayload = {
-      numero: text,
-    };
-  } else {
-    await this.sendWhatsAppMessage(
-      senderPhone,
-      `❓ Não consegui identificar o conteúdo.
+        inputPayload = {
+          numero: text,
+        };
+      } else {
+        await this.sendWhatsAppMessage(
+          senderPhone,
+          `❓ Não consegui identificar o conteúdo.
 
 Envie um *link*, um *número de telefone* ou uma *imagem/print* para eu analisar.`
-    );
+        );
 
-    return;
-  }
-} else if (messageData.type === "image") {
+        return;
+      }
+    } else if (
+      messageData.type === "image"
+    ) {
       tipoConsulta = "print";
 
       const localImagePath =
@@ -199,19 +255,30 @@ Envie um *link*, um *número de telefone* ou uma *imagem/print* para eu analisar
 📊 *Score de risco:* ${resultado.score}/100
 
 🛡️ *Classificação:* ${
-        resultado.classificacao || resultado.nivel || "Indefinido"
+        resultado.classificacao ||
+        resultado.nivel ||
+        "Indefinido"
       }
 
 📋 *Conclusão:* ${
-        resultado.conclusao || "Análise concluída."
+        resultado.conclusao ||
+        "Análise concluída."
       }
 
 🔍 *Detalhes:*
 
 • Tipo: ${tipoConsulta}
+
 • Alvo: ${valorIdentificado}
-• Tipo de golpe: ${resultado.tipoGolpe || "Indeterminado"}
-• Denúncias: ${resultado.denuncias || 0}
+
+• Tipo de golpe: ${
+        resultado.tipoGolpe ||
+        "Indeterminado"
+      }
+
+• Denúncias: ${
+        resultado.denuncias || 0
+      }
       `.trim();
 
       await this.sendWhatsAppMessage(
@@ -230,6 +297,9 @@ Envie um *link*, um *número de telefone* ou uma *imagem/print* para eu analisar
       );
     }
   }
+
+  
 }
 
 export default new WhatsAppBotService();
+

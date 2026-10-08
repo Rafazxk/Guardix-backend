@@ -3,14 +3,26 @@ import UserRepository from "../../auth/repositories/UserRepository.js";
 
 class WhatsappConnectionService {
   private normalizePhone(phone: string): string {
-    const numbers = phone.replace(/\D/g, "");
+  let numbers = phone.replace(/\D/g, "");
 
-    if (numbers.startsWith("55") && numbers.length === 13) {
-      return numbers.slice(2);
-    }
+  console.log("📱 Telefone original:", phone);
+  console.log("📱 Somente números:", numbers);
 
-    return numbers;
+  // Remove o código do Brasil
+  if (numbers.startsWith("55")) {
+    numbers = numbers.slice(2);
   }
+
+  // Celular brasileiro sem o 9:
+  // DDD + 8 dígitos → DDD + 9 + 8 dígitos
+  if (numbers.length === 10) {
+    numbers = `${numbers.slice(0, 2)}9${numbers.slice(2)}`;
+  }
+
+  console.log("📱 Telefone normalizado:", numbers);
+
+  return numbers;
+}
 
   async findUserByPhone(phone: string) {
     const normalizedPhone = this.normalizePhone(phone);
@@ -52,34 +64,34 @@ class WhatsappConnectionService {
     const normalizedPhone = this.normalizePhone(phone);
 
     const existingConnection =
-  await WhatsappConnectionRepository.findByPhone(
-    normalizedPhone
-  );
+      await WhatsappConnectionRepository.findByPhone(
+        normalizedPhone
+      );
 
-if (existingConnection) {
-  if (existingConnection.user_id !== userId) {
-    throw new Error(
-      "Este número de WhatsApp já está vinculado a outra conta."
+    if (existingConnection) {
+      if (existingConnection.user_id !== userId) {
+        throw new Error(
+          "Este número de WhatsApp já está vinculado a outra conta."
+        );
+      }
+
+      if (existingConnection.ativo) {
+        throw new Error(
+          "Este número de WhatsApp já está vinculado a esta conta."
+        );
+      }
+
+
+
+      return WhatsappConnectionRepository.reactivate(
+        existingConnection.id
+      );
+    }
+
+    return WhatsappConnectionRepository.create(
+      userId,
+      normalizedPhone
     );
-  }
-
-  if (existingConnection.ativo) {
-    throw new Error(
-      "Este número de WhatsApp já está vinculado a esta conta."
-    );
-  }
-
-
-  
-  return WhatsappConnectionRepository.reactivate(
-    existingConnection.id
-  );
-}
-
-return WhatsappConnectionRepository.create(
-  userId,
-  normalizedPhone
-);
   }
 
   async disconnect(userId: string) {
