@@ -2,63 +2,75 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../config/database.js';
 import { PLANS } from '../config/planos.js';
 
-export const checkPlanLimits = (tipoConsulta: 'link' | 'telefone' | 'print') => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+export const checkPlanLimits = (
+  tipoConsulta: 'link' | 'telefone' | 'print'
+) => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const userId = req.user?.id || req.user?.user_id;
 
       if (!userId) {
-        return res.status(401).json({ erro: 'Usuário não autenticado.' });
+        return res.status(401).json({
+          erro: 'Usuário não autenticado.'
+        });
       }
 
       let planoUser = req.user?.plano;
 
       if (!planoUser) {
         const userQuery = await pool.query(
-          'SELECT plano FROM users WHERE user_id = $1', 
+          'SELECT plano FROM users WHERE user_id = $1',
           [userId]
         );
+
         planoUser = userQuery.rows[0]?.plano;
       }
 
       const planoChave = (planoUser || 'free').toLowerCase();
       const configPlano = PLANS[planoChave] || PLANS.free;
 
-      const limitesMap = {
-        link: configPlano.maxConsultasLinks,
-        telefone: configPlano.maxConsultasTelefones,
-        print: configPlano.maxConsultasPrints,
-      };
-
-      const limite = limitesMap[tipoConsulta];
-
-      if (limite === -1) {
+      // Planos pagos continuam sem limite
+      if (planoChave !== 'free') {
         return next();
       }
 
+      // Free possui uma única cota global de 5 consultas
+      const limite = 5;
+
       const countQuery = await pool.query(
-        `SELECT COUNT(*) FROM consultas 
-         WHERE user_id = $1 
-           AND tipo_consulta = $2 
-           AND data_consulta >= date_trunc('day', CURRENT_TIMESTAMP)`,
-        [userId, tipoConsulta]
+        `SELECT COUNT(*)
+         FROM consultas
+         WHERE user_id = $1`,
+        [userId]
       );
 
-      const totalHoje = parseInt(countQuery.rows[0].count, 10);
+      const totalConsultas = parseInt(
+        countQuery.rows[0].count,
+        10
+      );
 
-      if (totalHoje >= limite) {
+      if (totalConsultas >= limite) {
         return res.status(403).json({
           erro: 'Limite de consultas atingido.',
-          mensagem: `Você atingiu o limite de ${limite} consultas de ${tipoConsulta} para o plano Free hoje. Faça upgrade para ter verificações ilimitadas!`,
+          mensagem:
+            'Você atingiu o limite de 5 consultas gratuitas. Faça upgrade para continuar utilizando o Verificador.',
           limite,
-          usado: totalHoje,
+          usado: totalConsultas,
         });
       }
 
       next();
+
     } catch (err) {
       console.error('Erro no checkPlanLimits:', err);
-      return res.status(500).json({ erro: 'Erro ao verificar limites do plano.' });
+
+      return res.status(500).json({
+        erro: 'Erro ao verificar limites do plano.'
+      });
     }
   };
 };
