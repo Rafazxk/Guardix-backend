@@ -154,51 +154,55 @@ class FeedRepository {
       : 0;
   }
 
-  async listarEstatisticas(
-    usuarioId: string
-  ): Promise<FeedStatistics> {
-    const query = `
-      SELECT
-  (
-    SELECT COUNT(*)
-    FROM consultas
-    WHERE user_id = $1
-  ) AS total_consultas,
+  
+async listarEstatisticas(
+  usuarioId: string
+): Promise<FeedStatistics> {
+  const query = `
+    SELECT
+      (
+        SELECT COUNT(*)
+        FROM consultas
+        WHERE user_id = $1
+      ) AS total_consultas,
 
-  (
-    SELECT COUNT(*)
-    FROM consultas
-    WHERE user_id = $1
-      AND score_risco >= 70
-  ) AS ameacas_evitadas,
+      (
+        SELECT COUNT(*)
+        FROM consultas
+        WHERE user_id = $1
+          AND score_risco >= 70
+      ) AS ameacas_evitadas,
 
-  (
-    SELECT COUNT(*)
-    FROM consultas
-    WHERE user_id = $1
-      AND score_risco < 70
-  ) AS analises_seguras,
+      (
+        SELECT COUNT(*)
+        FROM consultas
+        WHERE user_id = $1
+          AND score_risco < 70
+      ) AS analises_seguras,
 
-  (
-    SELECT COUNT(*)
-    FROM links_reportados
-    WHERE user_id = $1
-  )
-  +
-  (
-    SELECT COUNT(*)
-    FROM telefones_reportados
-    WHERE user_id = $1
-  ) AS total_reportados;
-    `;
+      (
+        SELECT COUNT(*)
+        FROM links_reportados lr
+        INNER JOIN consultas c
+          ON c.consulta_id = lr.consulta_id
+        WHERE c.user_id = $1
+      )
+      +
+      (
+        SELECT COUNT(*)
+        FROM telefones_reportados
+        WHERE user_id = $1
+      ) AS total_reportados;
+  `;
 
-    const result = await db.query<FeedStatistics>(
-      query,
-      [usuarioId]
-    );
+  const result = await db.query<FeedStatistics>(
+    query,
+    [usuarioId]
+  );
 
-    return result.rows[0];
-  }
+  return result.rows[0];
+}
+
 
   async criarDenuncia({
     tipo,
@@ -232,11 +236,11 @@ class FeedRepository {
       await db.query(
         `
         INSERT INTO links_reportados
-          (url, denuncias, user_id)
+          (url, denuncias)
         VALUES
-          ($1, 1, $2)
+          ($1, 1, )
       `,
-        [valor, usuarioId]
+        [valor]
       );
 
       return;
